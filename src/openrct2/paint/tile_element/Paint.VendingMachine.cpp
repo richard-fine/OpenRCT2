@@ -9,6 +9,7 @@
 
 #include "Paint.VendingMachine.h"
 
+#include "../../drawing/LightFX.h"
 #include "../../drawing/PaletteIndex.h"
 #include "../../interface/Viewport.h"
 #include "../../object/PathAdditionEntry.h"
@@ -79,4 +80,15 @@ void PaintVendingMachine(
         session, imageTemplate.WithIndex(imageIndex), { geometry.offset.x, geometry.offset.y, height },
         { { geometry.boundBoxOffset.x, geometry.boundBoxOffset.y, height + geometry.boundBoxOffset.z },
           geometry.boundBoxLength });
+
+    // The display glows at night, unless the machine is broken. Sold-out machines stay lit; their sprite shows they
+    // are empty.
+    if (LightFx::IsAvailable() && !isBroken && !machineElement.isGhost())
+    {
+        // Offsets from the tile centre towards the machine's edge, by (unrotated) direction.
+        static constexpr CoordsXY kLightOffsets[] = { { -10, 0 }, { 0, 10 }, { 10, 0 }, { 0, -10 } };
+        const auto& offset = kLightOffsets[machineElement.getDirection() & 3];
+        LightFx::Add3DLightMagicFromDrawingTile(
+            session.MapPosition, offset.x, offset.y, height + 18, LightFx::LightType::lantern1);
+    }
 }
