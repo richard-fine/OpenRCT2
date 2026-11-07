@@ -13,6 +13,7 @@
 #include "../../Diagnostic.h"
 #include "../../GameState.h"
 #include "../../OpenRCT2.h"
+#include "../../localisation/Formatter.h"
 #include "../../localisation/StringIds.h"
 #include "../../management/Finance.h"
 #include "../../object/ObjectEntryManager.h"
@@ -114,6 +115,22 @@ namespace OpenRCT2::GameActions
             return Result(Status::invalidParameters, STR_CANT_POSITION_THIS_HERE, STR_CAN_ONLY_BE_PLACED_ON_PATH_EDGES);
         }
 
+        // A bench, bin or lamp on this path doesn't use edges with vending machines: leave it at least one.
+        if (pathElement->hasAddition() && !pathElement->additionIsGhost())
+        {
+            auto* additionEntry = pathElement->getAdditionEntry();
+            const bool usesEdges = additionEntry != nullptr
+                && !additionEntry->flags.hasAny(PathAdditionFlag::jumpingFountainWater, PathAdditionFlag::jumpingFountainSnow);
+            const auto usedEdges = pathElement->getEdges() | VendingMachineGetOccupiedEdges(_loc, false) | (1 << _loc.direction);
+            if (usesEdges && usedEdges == 0x0F)
+            {
+                auto inTheWay = Result(Status::noClearance, STR_CANT_POSITION_THIS_HERE, STR_X_IN_THE_WAY);
+                Formatter ft(inTheWay.errorMessageArgs.data());
+                ft.Add<StringId>(additionEntry->name);
+                return inTheWay;
+            }
+        }
+
         const auto clearanceZ = _loc.z + kVendingMachineClearanceZ;
         auto* existing = VendingMachineGetElementAt(_loc, false);
         const bool isRepair = existing != nullptr && existing->getEntryIndex() == _entryIndex && existing->isBroken();
@@ -188,6 +205,12 @@ namespace OpenRCT2::GameActions
         }
         else
         {
+            if (!isGhost)
+            {
+                // Guests sitting on a bench on this edge get up.
+                FootpathInterruptPeeps(_loc);
+            }
+
             VendingMachine* record = nullptr;
             if (!isGhost)
             {

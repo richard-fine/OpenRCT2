@@ -15,6 +15,7 @@
 #include "../../object/PathAdditionEntry.h"
 #include "../../paint/Paint.h"
 #include "../../profiling/Profiling.h"
+#include "../../world/VendingMachine.h"
 #include "../../world/tile_element/PathElement.h"
 #include "Paint.TileElement.h"
 
@@ -227,8 +228,9 @@ inline bool PathAdditionIsVisible(ViewportFlags viewFlags, const PathAdditionEnt
 
 void paintPathAddition(PaintSession& session, const PathElement& pathElement, uint16_t height, ImageId sceneryImageTemplate)
 {
-    // Path additions get drawn on edges that are not connected, so we need to flip them.
-    const auto edges = pathElement.getEdges() ^ 0b1111;
+    // Path additions get drawn on edges that are not connected (and have no vending machine), so we need to flip them.
+    const auto machineEdges = VendingMachineGetOccupiedEdges({ session.MapPosition, pathElement.getBaseZ() }, true);
+    const auto edges = (pathElement.getEdges() | machineEdges) ^ 0b1111;
     const auto rotatedEdges = ((edges << session.CurrentRotation) & 0xF) | (((edges) << session.CurrentRotation) >> 4);
 
     session.InteractionType = ViewportInteractionItem::pathAddition;
@@ -283,19 +285,21 @@ void PaintLampLightEffects(PaintSession& session, const PathElement& pathEl, uin
             auto* pathAddEntry = pathEl.getAdditionEntry();
             if (pathAddEntry != nullptr && pathAddEntry->flags.has(PathAdditionFlag::lamp))
             {
-                if (!(pathEl.getEdges() & EDGE_NE))
+                const auto usedEdges = pathEl.getEdges()
+                    | VendingMachineGetOccupiedEdges({ session.MapPosition, pathEl.getBaseZ() }, true);
+                if (!(usedEdges & EDGE_NE))
                 {
                     LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, -16, 0, height + 23, LightType::lantern3);
                 }
-                if (!(pathEl.getEdges() & EDGE_SE))
+                if (!(usedEdges & EDGE_SE))
                 {
                     LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, 16, height + 23, LightType::lantern3);
                 }
-                if (!(pathEl.getEdges() & EDGE_SW))
+                if (!(usedEdges & EDGE_SW))
                 {
                     LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 16, 0, height + 23, LightType::lantern3);
                 }
-                if (!(pathEl.getEdges() & EDGE_NW))
+                if (!(usedEdges & EDGE_NW))
                 {
                     LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, -16, height + 23, LightType::lantern3);
                 }

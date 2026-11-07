@@ -2186,7 +2186,7 @@ namespace OpenRCT2::Scripting
 
         // Each path edge has a 2-bit slot (0 = full, 3 = empty); a bin is only "full" once a
         // slot on an open edge reaches 0. Matches Staff::updatePatrollingFindBin.
-        uint8_t binEdges = el->getEdges();
+        uint8_t binEdges = el->getEdges() | VendingMachineGetOccupiedEdges({ data->coords, el->getBaseZ() }, false);
         uint8_t binStatus = el->getAdditionStatus();
         for (int32_t i = 0; i < 4; ++i)
         {

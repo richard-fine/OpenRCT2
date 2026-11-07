@@ -5621,7 +5621,7 @@ namespace OpenRCT2
             }
         }
 
-        int32_t edges = (tileElement->asPath()->getEdges()) ^ 0xF;
+        int32_t edges = (tileElement->asPath()->getEdges() | VendingMachineGetOccupiedEdges(nextLoc, false)) ^ 0xF;
         if (edges == 0)
             return;
 
@@ -6140,7 +6140,7 @@ namespace OpenRCT2
         if (pathElement == nullptr)
             return false;
 
-        int32_t edges = pathElement->getEdges() ^ 0xF;
+        int32_t edges = (pathElement->getEdges() | VendingMachineGetOccupiedEdges(nextLoc, false)) ^ 0xF;
         if (edges == 0)
             return false;
         uint8_t chosen_edge = ScenarioRand() & 0x3;
@@ -6228,7 +6228,7 @@ namespace OpenRCT2
         if (pathElement == nullptr)
             return false;
 
-        int32_t edges = (pathElement->getEdges()) ^ 0xF;
+        int32_t edges = (pathElement->getEdges() | VendingMachineGetOccupiedEdges(peep->nextLoc, false)) ^ 0xF;
         if (edges == 0)
             return false;
 

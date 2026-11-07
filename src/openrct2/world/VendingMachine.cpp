@@ -247,6 +247,18 @@ namespace OpenRCT2
         return false;
     }
 
+    uint8_t VendingMachineGetOccupiedEdges(const CoordsXYZ& pathLoc, bool includeGhosts)
+    {
+        uint8_t edges = 0;
+        for (auto* machine : TileElementsView<VendingMachineElement>(pathLoc))
+        {
+            if (machine->getBaseZ() != pathLoc.z || (machine->isGhost() && !includeGhosts))
+                continue;
+            edges |= 1 << machine->getDirection();
+        }
+        return edges;
+    }
+
     void VendingMachinesRemoveFromPath(const CoordsXYZ& pathLoc)
     {
         bool removed;

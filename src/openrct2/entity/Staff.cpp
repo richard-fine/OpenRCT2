@@ -1653,7 +1653,7 @@ namespace OpenRCT2
         if (tileElement->asPath()->additionIsGhost())
             return false;
 
-        uint8_t bin_positions = tileElement->asPath()->getEdges();
+        uint8_t bin_positions = tileElement->asPath()->getEdges() | VendingMachineGetOccupiedEdges(nextLoc, false);
         uint8_t bin_quantity = tileElement->asPath()->getAdditionStatus();
         uint8_t chosen_position = 0;
 

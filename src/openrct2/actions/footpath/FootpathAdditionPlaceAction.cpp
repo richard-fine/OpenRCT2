@@ -20,6 +20,7 @@
 #include "../../world/Footpath.h"
 #include "../../world/Location.hpp"
 #include "../../world/Map.h"
+#include "../../world/VendingMachine.h"
 #include "../../world/tile_element/PathElement.h"
 
 namespace OpenRCT2::GameActions
@@ -118,10 +119,17 @@ namespace OpenRCT2::GameActions
             return Result(Status::invalidParameters, STR_CANT_POSITION_THIS_HERE, STR_CANNOT_PLACE_THESE_ON_QUEUE_LINE_AREA);
         }
 
-        if (!sceneryFlags.hasAny(PathAdditionFlag::jumpingFountainWater, PathAdditionFlag::jumpingFountainSnow)
-            && (pathElement->getEdges()) == 0x0F)
+        if (!sceneryFlags.hasAny(PathAdditionFlag::jumpingFountainWater, PathAdditionFlag::jumpingFountainSnow))
         {
-            return Result(Status::invalidParameters, STR_CANT_POSITION_THIS_HERE, STR_CAN_ONLY_BE_PLACED_ON_PATH_EDGES);
+            if ((pathElement->getEdges()) == 0x0F)
+            {
+                return Result(Status::invalidParameters, STR_CANT_POSITION_THIS_HERE, STR_CAN_ONLY_BE_PLACED_ON_PATH_EDGES);
+            }
+            // Path additions don't use edges with vending machines, so they need at least one other free edge.
+            if ((pathElement->getEdges() | VendingMachineGetOccupiedEdges(_loc, false)) == 0x0F)
+            {
+                return Result(Status::invalidParameters, STR_CANT_POSITION_THIS_HERE, STR_OBJECT_IN_THE_WAY);
+            }
         }
 
         if (sceneryFlags.has(PathAdditionFlag::isQueueScreen) && !pathElement->isQueue())

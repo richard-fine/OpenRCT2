@@ -95,6 +95,12 @@ namespace OpenRCT2
     bool VendingMachineInTheWay(const CoordsXYRangedZ& loc, Direction edge);
 
     /**
+     * The edges (as a bit mask, like path edges) of the path at pathLoc that have vending machines standing on them.
+     * Path additions such as benches and bins don't use these edges.
+     */
+    uint8_t VendingMachineGetOccupiedEdges(const CoordsXYZ& pathLoc, bool includeGhosts);
+
+    /**
      * Removes every vending machine standing on the path at pathLoc (machines share the path's base height).
      */
     void VendingMachinesRemoveFromPath(const CoordsXYZ& pathLoc);
