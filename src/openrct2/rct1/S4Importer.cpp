@@ -3028,6 +3028,11 @@ namespace OpenRCT2::RCT1
         dst->staffGardensWatered = src->PaidOnRides;
         dst->staffLitterSwept = src->PaidOnFood;
         dst->staffBinsEmptied = src->PaidOnSouvenirs;
+        dst->staffVendingMachinesRestocked = 0;
+        if (dst->assignedStaffType == StaffType::handyman)
+        {
+            dst->staffOrders |= STAFF_ORDERS_RESTOCK_VENDING_MACHINES;
+        }
 
         ImportStaffPatrolArea(dst, src->StaffID);
     }

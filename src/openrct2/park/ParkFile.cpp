@@ -2707,6 +2707,19 @@ namespace OpenRCT2
         cs.readWrite(entity.staffGardensWatered);
         cs.readWrite(entity.staffLitterSwept);
         cs.readWrite(entity.staffBinsEmptied);
+        if (os.getHeader().targetVersion >= kVendingMachineRestockingVersion)
+        {
+            cs.readWrite(entity.staffVendingMachinesRestocked);
+        }
+        else if (cs.getMode() == OrcaStream::Mode::reading)
+        {
+            entity.staffVendingMachinesRestocked = 0;
+            // Handymen in older parks take on the new job by default.
+            if (entity.assignedStaffType == StaffType::handyman)
+            {
+                entity.staffOrders |= STAFF_ORDERS_RESTOCK_VENDING_MACHINES;
+            }
+        }
     }
 
     template<>

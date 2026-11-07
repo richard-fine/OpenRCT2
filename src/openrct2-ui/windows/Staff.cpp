@@ -77,6 +77,7 @@ namespace OpenRCT2::Ui::Windows
         WIDX_CHECKBOX_2,
         WIDX_CHECKBOX_3,
         WIDX_CHECKBOX_4,
+        WIDX_CHECKBOX_5,
         WIDX_COSTUME_BOX,
         WIDX_COSTUME_BTN,
     };
@@ -111,6 +112,7 @@ namespace OpenRCT2::Ui::Windows
         makeWidget     ({      5,  67},                {180,  12}, WidgetType::checkbox,     WindowColour::secondary                                            ), // Checkbox 2
         makeWidget     ({      5,  84},                {180,  12}, WidgetType::checkbox,     WindowColour::secondary                                            ), // Checkbox 3
         makeWidget     ({      5, 101},                {180,  12}, WidgetType::checkbox,     WindowColour::secondary                                            ), // Checkbox 4
+        makeWidget     ({      5, 118},                {180,  12}, WidgetType::checkbox,     WindowColour::secondary                                            ), // Checkbox 5
         makeWidget     ({      5,  50},                {180,  12}, WidgetType::dropdownMenu, WindowColour::secondary                                            ), // Costume Dropdown
         makeWidget     ({kWindowSize.width - 17,  51}, { 11,  10}, WidgetType::button,       WindowColour::secondary, STR_DROPDOWN_GLYPH, STR_SELECT_COSTUME_TIP) // Costume Dropdown Button
     );
@@ -765,6 +767,7 @@ namespace OpenRCT2::Ui::Windows
                 case WIDX_CHECKBOX_2:
                 case WIDX_CHECKBOX_3:
                 case WIDX_CHECKBOX_4:
+                case WIDX_CHECKBOX_5:
                     SetOrder(widgetIndex - WIDX_CHECKBOX_1);
                     break;
             }
@@ -838,6 +841,7 @@ namespace OpenRCT2::Ui::Windows
                     widgets[WIDX_CHECKBOX_2].setHidden();
                     widgets[WIDX_CHECKBOX_3].setHidden();
                     widgets[WIDX_CHECKBOX_4].setHidden();
+                    widgets[WIDX_CHECKBOX_5].setHidden();
                     widgets[WIDX_COSTUME_BOX].setVisible();
                     widgets[WIDX_COSTUME_BTN].setVisible();
 
@@ -867,6 +871,8 @@ namespace OpenRCT2::Ui::Windows
                     widgets[WIDX_CHECKBOX_3].text = STR_STAFF_OPTION_EMPTY_LITTER;
                     widgets[WIDX_CHECKBOX_4].setVisible();
                     widgets[WIDX_CHECKBOX_4].text = STR_STAFF_OPTION_MOW_GRASS;
+                    widgets[WIDX_CHECKBOX_5].setVisible();
+                    widgets[WIDX_CHECKBOX_5].text = STR_STAFF_OPTION_RESTOCK_VENDING_MACHINES;
                     widgets[WIDX_COSTUME_BOX].setHidden();
                     widgets[WIDX_COSTUME_BTN].setHidden();
                     OptionsSetCheckboxValues();
@@ -878,6 +884,7 @@ namespace OpenRCT2::Ui::Windows
                     widgets[WIDX_CHECKBOX_2].text = STR_FIX_RIDES;
                     widgets[WIDX_CHECKBOX_3].setHidden();
                     widgets[WIDX_CHECKBOX_4].setHidden();
+                    widgets[WIDX_CHECKBOX_5].setHidden();
                     widgets[WIDX_COSTUME_BOX].setHidden();
                     widgets[WIDX_COSTUME_BTN].setHidden();
                     widgets[WIDX_COSTUME_BTN].setHidden();
@@ -897,6 +904,7 @@ namespace OpenRCT2::Ui::Windows
             setCheckboxValue(WIDX_CHECKBOX_2, false);
             setCheckboxValue(WIDX_CHECKBOX_3, false);
             setCheckboxValue(WIDX_CHECKBOX_4, false);
+            setCheckboxValue(WIDX_CHECKBOX_5, false);
 
             auto staff = GetStaff();
             if (staff == nullptr)
@@ -969,6 +977,11 @@ namespace OpenRCT2::Ui::Windows
                     ft = Formatter();
                     ft.Add<uint32_t>(staff->staffBinsEmptied);
                     drawText(rt, screenCoords, STR_STAFF_STAT_BINS_EMPTIED, ft);
+                    screenCoords.y += kListRowHeight;
+
+                    ft = Formatter();
+                    ft.Add<uint32_t>(staff->staffVendingMachinesRestocked);
+                    drawText(rt, screenCoords, STR_STAFF_STAT_VENDING_MACHINES_RESTOCKED, ft);
                     break;
                 case StaffType::mechanic:
                     ft = Formatter();

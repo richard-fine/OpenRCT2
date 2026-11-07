@@ -324,6 +324,7 @@ struct GameStateSnapshots final : public IGameStateSnapshots
         COMPARE_FIELD(Staff, staffRidesInspected);
         COMPARE_FIELD(Staff, staffLitterSwept);
         COMPARE_FIELD(Staff, staffBinsEmptied);
+        COMPARE_FIELD(Staff, staffVendingMachinesRestocked);
     }
 
     void CompareSpriteDataGuest(const Guest& spriteBase, const Guest& spriteCmp, GameStateSpriteChange& changeData) const

@@ -4017,6 +4017,11 @@ declare global {
          * The number of bins emptied by the handyman.
          */
         readonly binsEmptied: number;
+
+        /**
+         * Number of vending machines restocked by the handyman.
+         */
+        readonly vendingMachinesRestocked: number;
     }
 
     /**

@@ -69,6 +69,7 @@ namespace OpenRCT2
         watering = 21,
         headingToInspection = 22,
         inspecting = 23,
+        restockingVendingMachine = 24,
     };
 
     enum class PeepSittingSubState : uint8_t
@@ -328,6 +329,7 @@ namespace OpenRCT2
         fixingRide,
         answeringRadioCall,
         respondingToBreakdownCall,
+        restockingVendingMachine,
 
         count,
     };

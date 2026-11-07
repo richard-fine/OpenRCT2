@@ -96,6 +96,8 @@ namespace OpenRCT2::Scripting
         static JSValue litterSwept_get(JSContext* ctx, JSValue thisVal);
 
         static JSValue binsEmptied_get(JSContext* ctx, JSValue thisVal);
+
+        static JSValue vendingMachinesRestocked_get(JSContext* ctx, JSValue thisVal);
     };
 
     class ScHandyman;

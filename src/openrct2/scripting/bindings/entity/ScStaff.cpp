@@ -448,6 +448,7 @@ namespace OpenRCT2::Scripting
             JS_CGETSET_DEF("gardensWatered", &ScHandyman::gardensWatered_get, nullptr),
             JS_CGETSET_DEF("litterSwept", &ScHandyman::litterSwept_get, nullptr),
             JS_CGETSET_DEF("binsEmptied", &ScHandyman::binsEmptied_get, nullptr),
+            JS_CGETSET_DEF("vendingMachinesRestocked", &ScHandyman::vendingMachinesRestocked_get, nullptr),
         };
         gScHandyman.RegisterDerived(ctx, gScStaff, funcs);
     }
@@ -497,6 +498,19 @@ namespace OpenRCT2::Scripting
         if (peep != nullptr && peep->assignedStaffType == StaffType::handyman)
         {
             return JS_NewUint32(ctx, peep->staffBinsEmptied);
+        }
+        else
+        {
+            return JS_NULL;
+        }
+    }
+
+    JSValue ScHandyman::vendingMachinesRestocked_get(JSContext* ctx, JSValue thisVal)
+    {
+        auto peep = GetStaff(thisVal);
+        if (peep != nullptr && peep->assignedStaffType == StaffType::handyman)
+        {
+            return JS_NewUint32(ctx, peep->staffVendingMachinesRestocked);
         }
         else
         {

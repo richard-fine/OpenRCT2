@@ -3873,3 +3873,6 @@ STR_7079    :Ruby
 STR_7080    :Deep blue
 STR_7081    :Silver
 STR_7082    :Too many vending machines in game
+STR_7083    :Restocking vending machine
+STR_7084    :{WINDOW_COLOUR_2}Restock vending machines
+STR_7085    :{WINDOW_COLOUR_2}Vending machines restocked: {BLACK}{COMMA32}

@@ -31,6 +31,8 @@
 #include "../world/Footpath.h"
 #include "../world/Map.h"
 #include "../world/Scenery.h"
+#include "../world/TileElementsView.h"
+#include "../world/VendingMachine.h"
 #include "../world/Wall.h"
 #include "../world/tile_element/EntranceElement.h"
 #include "../world/tile_element/PathElement.h"
@@ -38,6 +40,7 @@
 #include "../world/tile_element/SmallSceneryElement.h"
 #include "../world/tile_element/SurfaceElement.h"
 #include "../world/tile_element/TrackElement.h"
+#include "../world/tile_element/VendingMachineElement.h"
 #include "PatrolArea.h"
 #include "Peep.h"
 
@@ -249,6 +252,7 @@ namespace OpenRCT2
             peep->staffLitterSwept = 0;
             peep->staffVandalsStopped = 0;
             peep->staffBinsEmptied = 0;
+            peep->staffVendingMachinesRestocked = 0;
             peep->staffGuestsEntertained = 0;
         }
     }
@@ -1220,6 +1224,72 @@ namespace OpenRCT2
         }
     }
 
+    // Vending machines are restocked once they are down to a quarter of their capacity.
+    static bool VendingMachineNeedsRestocking(const VendingMachineElement& machine)
+    {
+        if (machine.isGhost() || machine.isBroken())
+            return false;
+        auto* entry = machine.getEntry();
+        return entry != nullptr && machine.getStock() * 4 <= entry->stockCapacity;
+    }
+
+    /**
+     * Walks to a vending machine (the edge is in var37), then refills it with the bin emptying animation.
+     */
+    void Staff::updateRestockingVendingMachine()
+    {
+        staffMowingTimeout = 0;
+
+        if (subState == 0)
+        {
+            if (!checkForPath())
+                return;
+
+            const auto [pathingResult, _] = performNextAction();
+            if (!(pathingResult & PATHING_DESTINATION_REACHED))
+                return;
+
+            orientation = (var37 & 3) << 3;
+            action = PeepActionType::staffEmptyBin;
+            animationFrameNum = 0;
+            animationImageIdOffset = 0;
+            updateCurrentAnimationType();
+
+            subState = 1;
+        }
+        else if (subState == 1)
+        {
+            if (isActionWalking())
+            {
+                stateReset();
+                return;
+            }
+
+            updateAction();
+            invalidate();
+
+            if (animationFrameNum != 11)
+                return;
+
+            auto* machineElement = VendingMachineGetElementAt({ nextLoc, static_cast<Direction>(var37 & 3) }, false);
+            if (machineElement == nullptr || !VendingMachineNeedsRestocking(*machineElement))
+            {
+                stateReset();
+                return;
+            }
+
+            machineElement->setStock(machineElement->getEntry()->stockCapacity);
+            if (auto* machine = machineElement->getMachine(); machine != nullptr)
+            {
+                machine->timesRestocked = AddClamp(machine->timesRestocked, 1u);
+            }
+
+            MapInvalidateTileZoom1({ nextLoc, machineElement->getBaseZ(), machineElement->getClearanceZ() });
+            staffVendingMachinesRestocked = AddClamp(staffVendingMachinesRestocked, 1u);
+            windowInvalidateFlags |= PEEP_INVALIDATE_STAFF_STATS;
+        }
+    }
+
     /**
      *
      *  rct2: 0x6BF641
@@ -1610,6 +1680,34 @@ namespace OpenRCT2
         return true;
     }
 
+    bool Staff::updatePatrollingFindVendingMachine()
+    {
+        if (!(staffOrders & STAFF_ORDERS_RESTOCK_VENDING_MACHINES))
+            return false;
+
+        if (getNextIsSurface())
+            return false;
+
+        for (auto* machine : TileElementsView<VendingMachineElement>(nextLoc))
+        {
+            if (machine->getBaseZ() != nextLoc.z || !VendingMachineNeedsRestocking(*machine))
+                continue;
+
+            if (isHandymanAlreadyServicingTile(CoordsXY{ nextLoc }, PeepState::restockingVendingMachine))
+                return false;
+
+            const auto edge = machine->getDirection();
+            var37 = edge;
+            setState(PeepState::restockingVendingMachine);
+
+            subState = 0;
+            auto destination = BinUseOffsets[edge] + getLocation().toTileStart();
+            setDestination(destination, 3);
+            return true;
+        }
+        return false;
+    }
+
     /**
      *
      *  rct2: 0x006BF322
@@ -1831,6 +1929,9 @@ namespace OpenRCT2
                 case PeepState::emptyingBin:
                     updateEmptyingBin();
                     break;
+                case PeepState::restockingVendingMachine:
+                    updateRestockingVendingMachine();
+                    break;
                 case PeepState::watering:
                     updateWatering();
                     break;
@@ -1890,6 +1991,9 @@ namespace OpenRCT2
             return;
 
         if (updatePatrollingFindBin())
+            return;
+
+        if (updatePatrollingFindVendingMachine())
             return;
 
         updatePatrollingFindWatering();
@@ -2670,5 +2774,6 @@ namespace OpenRCT2
         stream << staffGardensWatered; // union with staffRidesInspected
         stream << staffLitterSwept;    // union with staffVandalsStopped
         stream << staffBinsEmptied;
+        stream << staffVendingMachinesRestocked;
     }
 } // namespace OpenRCT2

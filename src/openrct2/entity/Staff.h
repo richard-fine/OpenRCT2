@@ -70,6 +70,10 @@ namespace OpenRCT2
         {
             uint32_t staffBinsEmptied;
         };
+        union // 5th statistic
+        {
+            uint32_t staffVendingMachinesRestocked;
+        };
 
         void update();
         void tick128UpdateStaff();
@@ -97,6 +101,7 @@ namespace OpenRCT2
         void updateMowing();
         void updateSweeping();
         void updateEmptyingBin();
+        void updateRestockingVendingMachine();
         void updateWatering();
         void updateAnswering();
         void updateFixing(int32_t steps);
@@ -136,6 +141,7 @@ namespace OpenRCT2
         Direction mechanicDirectionPath(uint8_t validDirections, PathElement* pathElement);
         bool updatePatrollingFindWatering();
         bool updatePatrollingFindBin();
+        bool updatePatrollingFindVendingMachine();
         bool updatePatrollingFindSweeping();
         bool updatePatrollingFindGrass();
     };
@@ -147,6 +153,7 @@ namespace OpenRCT2
         STAFF_ORDERS_WATER_FLOWERS = (1 << 1),
         STAFF_ORDERS_EMPTY_BINS = (1 << 2),
         STAFF_ORDERS_MOWING = (1 << 3),
+        STAFF_ORDERS_RESTOCK_VENDING_MACHINES = (1 << 4),
         STAFF_ORDERS_INSPECT_RIDES = (1 << 0),
         STAFF_ORDERS_FIX_RIDES = (1 << 1)
     };

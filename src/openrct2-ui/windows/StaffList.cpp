@@ -523,7 +523,8 @@ namespace OpenRCT2::Ui::Windows
 
             if (staffType == StaffType::handyman)
             {
-                staffOrders = STAFF_ORDERS_SWEEPING | STAFF_ORDERS_WATER_FLOWERS | STAFF_ORDERS_EMPTY_BINS;
+                staffOrders = STAFF_ORDERS_SWEEPING | STAFF_ORDERS_WATER_FLOWERS | STAFF_ORDERS_EMPTY_BINS
+                    | STAFF_ORDERS_RESTOCK_VENDING_MACHINES;
                 if (Config::Get().general.handymenMowByDefault)
                 {
                     staffOrders |= STAFF_ORDERS_MOWING;

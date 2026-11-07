@@ -173,6 +173,7 @@ namespace OpenRCT2
             case PeepState::answering:
             case PeepState::watching:
             case PeepState::emptyingBin:
+            case PeepState::restockingVendingMachine:
             case PeepState::usingBin:
             case PeepState::watering:
             case PeepState::headingToInspection:
@@ -1359,6 +1360,8 @@ namespace OpenRCT2
                 return { PeepActionDescriptionType::wateringGardens };
             case PeepState::emptyingBin:
                 return { PeepActionDescriptionType::emptyingBin };
+            case PeepState::restockingVendingMachine:
+                return { PeepActionDescriptionType::restockingVendingMachine };
             case PeepState::answering:
                 if (subState == 0)
                 {
