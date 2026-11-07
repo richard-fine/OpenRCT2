@@ -134,6 +134,11 @@ namespace OpenRCT2
                 {
                     context->LogError(ObjectError::invalidProperty, "Vending machine must sell a valid shop item.");
                 }
+                else if (GetShopItemDescriptor(_legacyType.shopItem).IsPhoto() || _legacyType.shopItem == ShopItem::voucher)
+                {
+                    // These are tied to a ride.
+                    context->LogError(ObjectError::invalidProperty, "Vending machines can't sell photos or vouchers.");
+                }
 
                 _legacyType.stockCapacity = Json::GetNumber<uint16_t>(
                     properties["stockCapacity"], kDefaultVendingMachineStockCapacity);

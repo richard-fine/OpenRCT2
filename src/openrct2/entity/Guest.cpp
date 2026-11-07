@@ -58,6 +58,7 @@
 #include "../world/Location.hpp"
 #include "../world/Map.h"
 #include "../world/TileElementsView.h"
+#include "../world/VendingMachine.h"
 #include "../world/Weather.h"
 #include "../world/tile_element/EntranceElement.h"
 #include "../world/tile_element/LargeSceneryElement.h"
@@ -1436,7 +1437,9 @@ namespace OpenRCT2
      *
      *  rct2: 0x0069AF1E
      */
-    static bool GuestDecideAndBuyItem(Guest& guest, Ride& ride, const ShopItem shopItem, money64 price)
+    // Exactly one of ride and machine is set: the shop or vending machine selling the item.
+    static bool GuestDecideAndBuyItem(
+        Guest& guest, Ride* ride, VendingMachine* machine, const ShopItem shopItem, money64 price)
     {
         const bool isPrecipitating = Weather::isPrecipitating();
         const bool isPrecipitatingAndUmbrella = isPrecipitating && (shopItem == ShopItem::umbrella);
@@ -1532,7 +1535,9 @@ namespace OpenRCT2
                     if (itemValue > (static_cast<money64>(ScenarioRand() & 0x07)) && !(gameState.cheats.ignorePrice))
                     {
                         // "I'm not paying that much for x"
-                        guest.insertNewThought(shopItemDescriptor.TooMuchThought, ride.id);
+                        // TODO: Vending machines need their own thought, as this one names the shop.
+                        if (ride != nullptr)
+                            guest.insertNewThought(shopItemDescriptor.TooMuchThought, ride->id);
                         return false;
                     }
                 }
@@ -1547,7 +1552,9 @@ namespace OpenRCT2
                     if (itemValue >= static_cast<money64>(ScenarioRand() & 0x07))
                     {
                         // "This x is a really good value"
-                        guest.insertNewThought(shopItemDescriptor.GoodValueThought, ride.id);
+                        // TODO: Vending machines need their own thought, as this one names the shop.
+                        if (ride != nullptr)
+                            guest.insertNewThought(shopItemDescriptor.GoodValueThought, ride->id);
                     }
                 }
 
@@ -1570,42 +1577,44 @@ namespace OpenRCT2
                         satisfaction++;
                 }
             }
-            ride.updateSatisfaction(satisfaction);
+            if (ride != nullptr)
+                ride->updateSatisfaction(satisfaction);
         }
 
         // The peep has now decided to buy the item (or, specifically, has not been
         // dissuaded so far).
         guest.giveItem(shopItem);
-        const auto hasRandomShopColour = ride.flags.has(RideFlag::randomShopColours);
+        // Vending machines have no colour scheme, so their items come in random colours.
+        const auto hasRandomShopColour = ride == nullptr || ride->flags.has(RideFlag::randomShopColours);
 
         switch (shopItem)
         {
             case ShopItem::tShirt:
-                guest.tShirtColour = hasRandomShopColour ? Drawing::getRandomColourNetworkSafe() : ride.trackColours[0].main;
+                guest.tShirtColour = hasRandomShopColour ? Drawing::getRandomColourNetworkSafe() : ride->trackColours[0].main;
                 break;
             case ShopItem::hat:
-                guest.hatColour = hasRandomShopColour ? Drawing::getRandomColourNetworkSafe() : ride.trackColours[0].main;
+                guest.hatColour = hasRandomShopColour ? Drawing::getRandomColourNetworkSafe() : ride->trackColours[0].main;
                 break;
             case ShopItem::balloon:
-                guest.balloonColour = hasRandomShopColour ? Drawing::getRandomColourNetworkSafe() : ride.trackColours[0].main;
+                guest.balloonColour = hasRandomShopColour ? Drawing::getRandomColourNetworkSafe() : ride->trackColours[0].main;
                 break;
             case ShopItem::umbrella:
-                guest.umbrellaColour = hasRandomShopColour ? Drawing::getRandomColourNetworkSafe() : ride.trackColours[0].main;
+                guest.umbrellaColour = hasRandomShopColour ? Drawing::getRandomColourNetworkSafe() : ride->trackColours[0].main;
                 break;
             case ShopItem::map:
                 guest.resetPathfindGoal();
                 break;
             case ShopItem::photo:
-                guest.photo1RideRef = ride.id;
+                guest.photo1RideRef = ride != nullptr ? ride->id : RideId::GetNull();
                 break;
             case ShopItem::photo2:
-                guest.photo2RideRef = ride.id;
+                guest.photo2RideRef = ride != nullptr ? ride->id : RideId::GetNull();
                 break;
             case ShopItem::photo3:
-                guest.photo3RideRef = ride.id;
+                guest.photo3RideRef = ride != nullptr ? ride->id : RideId::GetNull();
                 break;
             case ShopItem::photo4:
-                guest.photo4RideRef = ride.id;
+                guest.photo4RideRef = ride != nullptr ? ride->id : RideId::GetNull();
                 break;
             default:
                 break;
@@ -1660,13 +1669,27 @@ namespace OpenRCT2
         {
             guest.spendMoney(*expend_type, price, expenditure);
         }
-        ride.totalProfit = AddClamp(ride.totalProfit, price - shopItemDescriptor.Cost);
-        ride.windowInvalidateFlags.set(RideInvalidateFlag::income);
-        ride.curNumCustomers++;
-        ride.totalCustomers = AddClamp(ride.totalCustomers, 1u);
-        ride.windowInvalidateFlags.set(RideInvalidateFlag::customers);
+        if (ride != nullptr)
+        {
+            ride->totalProfit = AddClamp(ride->totalProfit, price - shopItemDescriptor.Cost);
+            ride->windowInvalidateFlags.set(RideInvalidateFlag::income);
+            ride->curNumCustomers++;
+            ride->totalCustomers = AddClamp(ride->totalCustomers, 1u);
+            ride->windowInvalidateFlags.set(RideInvalidateFlag::customers);
+        }
+        else if (machine != nullptr)
+        {
+            machine->totalProfit = AddClamp(machine->totalProfit, price - shopItemDescriptor.Cost);
+            machine->totalCustomers = AddClamp(machine->totalCustomers, 1u);
+            machine->numItemsSold = AddClamp(machine->numItemsSold, 1u);
+        }
 
         return true;
+    }
+
+    static bool GuestDecideAndBuyItem(Guest& guest, Ride& ride, const ShopItem shopItem, money64 price)
+    {
+        return GuestDecideAndBuyItem(guest, &ride, nullptr, shopItem, price);
     }
 
     /**
@@ -3221,6 +3244,30 @@ namespace OpenRCT2
      * such as "I'm hungry" after visiting a food shop.
      * Works for Thirst/Hungry/Low Money/Toilet
      */
+    static void GuestRemoveThoughts(Guest& guest, PeepThoughtType thoughtType)
+    {
+        for (int32_t i = 0; i < kPeepMaxThoughts; ++i)
+        {
+            PeepThought* thought = &guest.thoughts[i];
+
+            if (thought->type == PeepThoughtType::none)
+                break;
+
+            if (thought->type != thoughtType)
+                continue;
+
+            if (i < kPeepMaxThoughts - 1)
+            {
+                memmove(thought, thought + 1, sizeof(PeepThought) * (kPeepMaxThoughts - i - 1));
+            }
+
+            guest.thoughts[kPeepMaxThoughts - 1].type = PeepThoughtType::none;
+
+            guest.windowInvalidateFlags |= PEEP_INVALIDATE_PEEP_THOUGHTS;
+            i--;
+        }
+    }
+
     static void GuestStopPurchaseThought(Guest& guest, ride_type_t rideType)
     {
         auto thoughtType = PeepThoughtType::hungry;
@@ -3243,27 +3290,7 @@ namespace OpenRCT2
             }
         }
 
-        // Remove the related thought
-        for (int32_t i = 0; i < kPeepMaxThoughts; ++i)
-        {
-            PeepThought* thought = &guest.thoughts[i];
-
-            if (thought->type == PeepThoughtType::none)
-                break;
-
-            if (thought->type != thoughtType)
-                continue;
-
-            if (i < kPeepMaxThoughts - 1)
-            {
-                memmove(thought, thought + 1, sizeof(PeepThought) * (kPeepMaxThoughts - i - 1));
-            }
-
-            guest.thoughts[kPeepMaxThoughts - 1].type = PeepThoughtType::none;
-
-            guest.windowInvalidateFlags |= PEEP_INVALIDATE_PEEP_THOUGHTS;
-            i--;
-        }
+        GuestRemoveThoughts(guest, thoughtType);
     }
 
     /**
@@ -5503,6 +5530,9 @@ namespace OpenRCT2
         if (updateWalkingFindBin())
             return;
 
+        if (updateWalkingUseVendingMachine())
+            return;
+
         GuestUpdateWalkingBreakScenery(*this);
 
         if (state != PeepState::walking)
@@ -6236,6 +6266,99 @@ namespace OpenRCT2
         }
 
         return nullptr;
+    }
+
+    /**
+     * Whether the guest wants what a vending machine sells. Checked before GuestDecideAndBuyItem, so that guests
+     * walking past machines don't fill their thoughts with reasons not to buy.
+     */
+    static bool GuestWantsVendingMachineItem(Guest& guest, ShopItem shopItem)
+    {
+        if (shopItem == ShopItem::none || guest.hasItem(shopItem))
+            return false;
+
+        const auto& descriptor = GetShopItemDescriptor(shopItem);
+        if (descriptor.IsFoodOrDrink())
+        {
+            if (guest.hasFoodOrDrink() || guest.nausea >= 145)
+                return false;
+            return descriptor.IsFood() ? guest.hunger <= 75 : guest.thirst <= 75;
+        }
+        if (descriptor.IsSouvenir())
+        {
+            return guest.guestNumRides >= 3;
+        }
+        return false;
+    }
+
+    static VendingMachineElement* FindUsableVendingMachine(Guest& guest, const CoordsXYZ& loc)
+    {
+        for (auto* machine : TileElementsView<VendingMachineElement>(loc))
+        {
+            if (machine->getBaseZ() != loc.z || machine->isGhost() || machine->isBroken() || machine->getStock() == 0)
+                continue;
+            if (machine->getMachine() == nullptr)
+                continue;
+
+            auto* entry = machine->getEntry();
+            if (entry == nullptr || !GuestWantsVendingMachineItem(guest, entry->shopItem))
+                continue;
+
+            return machine;
+        }
+        return nullptr;
+    }
+
+    /**
+     * Buys from a working vending machine on the path the guest is walking along, if it sells something they want.
+     * Returns true if they bought something (and stopped to use the machine).
+     */
+    bool Guest::updateWalkingUseVendingMachine()
+    {
+        if (peepFlags.has(PeepFlag::leavingPark) || getNextIsSurface() || !isActionInterruptableSafely())
+            return false;
+
+        // No random numbers are drawn unless there is a machine, so parks without them behave exactly as before.
+        auto* machineElement = FindUsableVendingMachine(*this, nextLoc);
+        if (machineElement == nullptr)
+            return false;
+
+        auto* machine = machineElement->getMachine();
+        const auto shopItem = machineElement->getEntry()->shopItem;
+        if (!GuestDecideAndBuyItem(*this, nullptr, machine, shopItem, machine->price))
+            return false;
+
+        machineElement->setStock(machineElement->getStock() - 1);
+        if (machineElement->getStock() == 0)
+        {
+            MapInvalidateTileZoom1({ nextLoc, machineElement->getBaseZ(), machineElement->getClearanceZ() });
+        }
+
+        const auto& descriptor = GetShopItemDescriptor(shopItem);
+        if (descriptor.IsFood())
+            GuestRemoveThoughts(*this, PeepThoughtType::hungry);
+        else if (descriptor.IsDrink())
+            GuestRemoveThoughts(*this, PeepThoughtType::thirsty);
+
+        // A guest heading for a stall to buy the same kind of thing no longer needs to go there.
+        if (auto* headingRide = GetRide(guestHeadingToRideId); headingRide != nullptr)
+        {
+            const auto& rtd = headingRide->getRideTypeDescriptor();
+            if ((descriptor.IsFood() && rtd.flags.has(RtdFlag::sellsFood))
+                || (descriptor.IsDrink() && rtd.flags.has(RtdFlag::sellsDrinks)))
+            {
+                guestHeadingToRideId = RideId::GetNull();
+            }
+        }
+
+        // Stop to use the machine, facing it.
+        orientation = machineElement->getDirection() << 3;
+        action = PeepActionType::withdrawMoney;
+        animationFrameNum = 0;
+        animationImageIdOffset = 0;
+        updateCurrentAnimationType();
+        invalidate();
+        return true;
     }
 
     static VendingMachineElement* FindBreakableVendingMachine(const CoordsXYZ& loc)
