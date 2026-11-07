@@ -15,6 +15,8 @@
 #include "../drawing/Drawing.h"
 #include "../interface/Cursors.h"
 #include "../interface/ScreenCoords.hpp"
+#include "../ride/ShopItem.h"
+#include "RideObject.h"
 
 namespace OpenRCT2
 {
@@ -26,6 +28,8 @@ namespace OpenRCT2
         _legacyType.tool_id = static_cast<CursorID>(stream->ReadValue<uint8_t>());
         _legacyType.price = stream->ReadValue<money16>();
         _legacyType.scenery_tab_id = kObjectEntryIndexNull;
+        _legacyType.shopItem = ShopItem::none;
+        _legacyType.stockCapacity = 0;
         stream->Seek(2, STREAM_SEEK_CURRENT);
 
         GetStringTable().Read(context, stream, ObjectStringID::name);
@@ -85,6 +89,8 @@ namespace OpenRCT2
             return PathAdditionDrawType::bench;
         if (s == "fountain")
             return PathAdditionDrawType::jumpingFountain;
+        if (s == "vendingMachine")
+            return PathAdditionDrawType::vendingMachine;
         return PathAdditionDrawType::light;
     }
 
@@ -115,8 +121,33 @@ namespace OpenRCT2
                 { "isAllowedOnQueue",       PathAdditionFlag::dontAllowOnQueue,      Json::FlagType::inverted },
                 { "isAllowedOnSlope",       PathAdditionFlag::dontAllowOnSlope,      Json::FlagType::inverted },
                 { "isTelevision",           PathAdditionFlag::isQueueScreen,          Json::FlagType::normal },
+                { "isVendingMachine",       PathAdditionFlag::isVendingMachine,       Json::FlagType::normal },
             });
             // clang-format on
+
+            _legacyType.shopItem = ShopItem::none;
+            _legacyType.stockCapacity = 0;
+            if (_legacyType.flags.has(PathAdditionFlag::isVendingMachine))
+            {
+                _legacyType.shopItem = RideObject::ParseShopItem(Json::GetString(properties["sells"]));
+                if (_legacyType.shopItem == ShopItem::none)
+                {
+                    context->LogError(ObjectError::invalidProperty, "Vending machine must sell a valid shop item.");
+                }
+
+                _legacyType.stockCapacity = Json::GetNumber<uint16_t>(
+                    properties["stockCapacity"], kDefaultVendingMachineStockCapacity);
+                if (_legacyType.stockCapacity == 0)
+                {
+                    context->LogError(
+                        ObjectError::invalidProperty, "Vending machine stock capacity must be greater than zero.");
+                }
+
+                // Vending machines store their per-machine index in the bytes queues use for their ride index,
+                // and have no sloped artwork.
+                _legacyType.flags.set(PathAdditionFlag::dontAllowOnQueue);
+                _legacyType.flags.set(PathAdditionFlag::dontAllowOnSlope);
+            }
         }
 
         PopulateTablesFromJson(context, root);

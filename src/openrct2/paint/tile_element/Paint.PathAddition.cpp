@@ -66,6 +66,17 @@ static ImageIndex GetFootpathBenchImage(const PathAdditionEntry& pathAdditionEnt
     return pathAdditionEntry.image + offset + (isBroken ? 4 : 0);
 }
 
+static ImageIndex GetFootpathVendingMachineImage(
+    const PathAdditionEntry& pathAdditionEntry, edge_t edge, bool isBroken, bool isEmpty)
+{
+    auto offset = GetEdgeImageOffset(edge);
+    if (offset == 0)
+        return kImageIndexUndefined;
+
+    auto stateOffset = isBroken ? 4 : (isEmpty ? 8 : 0);
+    return pathAdditionEntry.image + offset + stateOffset;
+}
+
 /* rct2: 0x006A5AE5 */
 static void PathAdditionLightsPaint(
     PaintSession& session, const PathAdditionEntry& pathAdditionEntry, const PathElement& pathElement, int32_t height,
@@ -197,6 +208,41 @@ static void PathAdditionBenchesPaint(
     }
 }
 
+static void PathAdditionVendingMachinesPaint(
+    PaintSession& session, const PathAdditionEntry& pathAdditionEntry, const PathElement& pathElement, int32_t height,
+    uint8_t edges, ImageId imageTemplate)
+{
+    auto isBroken = pathElement.isBroken();
+    // TODO: Read from the vending machine's stock once per-machine state exists.
+    auto isEmpty = false;
+
+    // Machines stand against the unconnected edge, 6 units deep and 16 units wide, facing the centre of the path.
+    if (edges & EDGE_NE)
+    {
+        auto imageIndex = GetFootpathVendingMachineImage(pathAdditionEntry, EDGE_NE, isBroken, isEmpty);
+        PaintAddImageAsParent(
+            session, imageTemplate.WithIndex(imageIndex), { 4, 16, height }, { { 1, 8, height + 2 }, { 6, 16, 24 } });
+    }
+    if (edges & EDGE_SE)
+    {
+        auto imageIndex = GetFootpathVendingMachineImage(pathAdditionEntry, EDGE_SE, isBroken, isEmpty);
+        PaintAddImageAsParent(
+            session, imageTemplate.WithIndex(imageIndex), { 16, 28, height }, { { 8, 25, height + 2 }, { 16, 6, 24 } });
+    }
+    if (edges & EDGE_SW)
+    {
+        auto imageIndex = GetFootpathVendingMachineImage(pathAdditionEntry, EDGE_SW, isBroken, isEmpty);
+        PaintAddImageAsParent(
+            session, imageTemplate.WithIndex(imageIndex), { 28, 16, height }, { { 25, 8, height + 2 }, { 6, 16, 24 } });
+    }
+    if (edges & EDGE_NW)
+    {
+        auto imageIndex = GetFootpathVendingMachineImage(pathAdditionEntry, EDGE_NW, isBroken, isEmpty);
+        PaintAddImageAsParent(
+            session, imageTemplate.WithIndex(imageIndex), { 16, 4, height }, { { 8, 1, height + 2 }, { 16, 6, 24 } });
+    }
+}
+
 /* rct2: 0x006A6008 */
 static void PathAdditionJumpingFountainsPaint(
     PaintSession& session, const PathAdditionEntry& pathAdditionEntry, int32_t height, ImageId imageTemplate, RenderTarget& rt)
@@ -257,6 +303,9 @@ void paintPathAddition(PaintSession& session, const PathElement& pathElement, ui
             break;
         case PathAdditionDrawType::jumpingFountain:
             PathAdditionJumpingFountainsPaint(session, *pathAddEntry, height, sceneryImageTemplate, session.rt);
+            break;
+        case PathAdditionDrawType::vendingMachine:
+            PathAdditionVendingMachinesPaint(session, *pathAddEntry, pathElement, height, rotatedEdges, sceneryImageTemplate);
             break;
     }
 

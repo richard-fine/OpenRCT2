@@ -54,6 +54,7 @@ namespace OpenRCT2
         void SetRepositoryItem(ObjectRepositoryItem* item) const override;
 
         static ride_type_t ParseRideType(const std::string& s);
+        static ShopItem ParseShopItem(const std::string& s);
 
     private:
         void ReadLegacyCar(IReadObjectContext* context, IStream* stream, CarEntry& car);
@@ -69,7 +70,6 @@ namespace OpenRCT2
 
         static bool isRideTypeShopOrFacility(ride_type_t rideType);
         static RideCategory ParseRideCategory(const std::string& s);
-        static ShopItem ParseShopItem(const std::string& s);
 
         uint8_t GetDefaultClearance() const;
     };

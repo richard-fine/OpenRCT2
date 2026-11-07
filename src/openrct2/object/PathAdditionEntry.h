@@ -15,6 +15,7 @@
 #include "ObjectTypes.h"
 
 enum class CursorID : uint8_t;
+enum class ShopItem : uint8_t;
 
 namespace OpenRCT2
 {
@@ -24,7 +25,10 @@ namespace OpenRCT2
         bin,
         bench,
         jumpingFountain,
+        vendingMachine,
     };
+
+    constexpr uint16_t kDefaultVendingMachineStockCapacity = 50;
 
     struct PathAdditionEntry
     {
@@ -37,5 +41,9 @@ namespace OpenRCT2
         CursorID tool_id;
         money64 price;
         ObjectEntryIndex scenery_tab_id;
+
+        // Vending machines only
+        ShopItem shopItem;
+        uint16_t stockCapacity;
     };
 } // namespace OpenRCT2

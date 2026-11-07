@@ -23,7 +23,8 @@ namespace OpenRCT2
         jumpingFountainSnow = 5,
         dontAllowOnQueue = 6,
         dontAllowOnSlope = 7,
-        isQueueScreen = 8
+        isQueueScreen = 8,
+        isVendingMachine = 9,
     };
     using PathAdditionFlags = FlagHolder<uint16_t, PathAdditionFlag>;
 } // namespace OpenRCT2
