@@ -6316,6 +6316,15 @@ namespace OpenRCT2
         return false;
     }
 
+    // Where a guest stands to use a vending machine, by the machine's edge: a step in front of it. Machines take up the
+    // first 11 units in from their edge (see Paint.VendingMachine.cpp).
+    static constexpr CoordsXY kVendingMachineUseOffsets[] = {
+        { 14, 16 },
+        { 16, 18 },
+        { 18, 16 },
+        { 16, 14 },
+    };
+
     static VendingMachineElement* FindUsableVendingMachine(Guest& guest, const CoordsXYZ& loc)
     {
         for (auto* machine : TileElementsView<VendingMachineElement>(loc))
@@ -6353,15 +6362,12 @@ namespace OpenRCT2
         if (!GuestDecideToBuyItem(*this, nullptr, machineElement->getEntry()->shopItem, machine->price))
             return false;
 
-        // Stop to use the machine, facing it. The edge it stands on is kept in var37 until the sale.
+        // Step up to the machine first (sub-state 0). The edge it stands on is kept in var37 until the sale.
+        const auto edge = machineElement->getDirection();
         setState(PeepState::usingVendingMachine);
-        var37 = machineElement->getDirection();
-        orientation = machineElement->getDirection() << 3;
-        action = PeepActionType::withdrawMoney;
-        animationFrameNum = 0;
-        animationImageIdOffset = 0;
-        updateCurrentAnimationType();
-        invalidate();
+        subState = 0;
+        var37 = edge;
+        setDestination(CoordsXY{ x, y }.toTileStart() + kVendingMachineUseOffsets[edge], 2);
         return true;
     }
 
@@ -6371,6 +6377,26 @@ namespace OpenRCT2
      */
     void Guest::updateUsingVendingMachine()
     {
+        if (subState == 0)
+        {
+            if (!checkForPath())
+                return;
+
+            const auto [pathingResult, _] = performNextAction();
+            if (!(pathingResult & PATHING_DESTINATION_REACHED))
+                return;
+
+            // In front of the machine: face it and use it.
+            orientation = (var37 & 3) << 3;
+            action = PeepActionType::withdrawMoney;
+            animationFrameNum = 0;
+            animationImageIdOffset = 0;
+            updateCurrentAnimationType();
+            invalidate();
+            subState = 1;
+            return;
+        }
+
         if (!isActionWalking())
         {
             updateAction();
