@@ -14,6 +14,7 @@
 #include "../OpenRCT2.h"
 #include "../actions/GameActionRunner.h"
 #include "../actions/footpath/FootpathAdditionRemoveAction.h"
+#include "../actions/footpath/VendingMachineRemoveAction.h"
 #include "../actions/scenery/BannerRemoveAction.h"
 #include "../actions/scenery/LargeSceneryRemoveAction.h"
 #include "../actions/scenery/SmallSceneryRemoveAction.h"
@@ -44,6 +45,7 @@ uint8_t gSceneryPlaceRotation;
 uint8_t gSceneryGhostType;
 CoordsXYZ gSceneryGhostPosition;
 uint8_t gSceneryGhostWallRotation;
+uint8_t gSceneryGhostVendingMachineEdge;
 
 int16_t gSceneryShiftPressed;
 int16_t gSceneryShiftPressX;
@@ -288,6 +290,16 @@ void SceneryRemoveGhostToolPlacement()
         auto removeSceneryAction = GameActions::BannerRemoveAction({ gSceneryGhostPosition, gSceneryPlaceRotation });
         removeSceneryAction.SetFlags({ CommandFlag::allowDuringPaused, CommandFlag::noSpend, CommandFlag::ghost });
         GameActions::Execute(&removeSceneryAction, gameState);
+    }
+
+    if (gSceneryGhostType & SCENERY_GHOST_FLAG_VENDING_MACHINE)
+    {
+        gSceneryGhostType &= ~SCENERY_GHOST_FLAG_VENDING_MACHINE;
+
+        auto removeAction = GameActions::VendingMachineRemoveAction(
+            { gSceneryGhostPosition, gSceneryGhostVendingMachineEdge });
+        removeAction.SetFlags({ CommandFlag::allowDuringPaused, CommandFlag::noSpend, CommandFlag::ghost });
+        GameActions::Execute(&removeAction, gameState);
     }
 }
 

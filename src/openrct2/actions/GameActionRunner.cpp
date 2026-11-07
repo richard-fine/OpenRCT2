@@ -126,6 +126,7 @@ namespace OpenRCT2::GameActions
                 case GameCommand::placeLargeScenery:
                 case GameCommand::placeBanner:
                 case GameCommand::placeScenery:
+                case GameCommand::placeVendingMachine:
                     SceneryRemoveGhostToolPlacement();
                     break;
                 default:

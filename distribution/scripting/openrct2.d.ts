@@ -410,6 +410,8 @@ declare global {
         queryAction(action: "trackplace", args: TrackPlaceArgs, callback?: (result: GameActionResult) => void): void;
         queryAction(action: "trackremove", args: TrackRemoveArgs, callback?: (result: GameActionResult) => void): void;
         queryAction(action: "tracksetbrakespeed", args: TrackSetBrakeSpeedArgs, callback?: (result: GameActionResult) => void): void;
+        queryAction(action: "vendingmachineplace", args: VendingMachinePlaceArgs, callback?: (result: GameActionResult) => void): void;
+        queryAction(action: "vendingmachineremove", args: VendingMachineRemoveArgs, callback?: (result: GameActionResult) => void): void;
         queryAction(action: "wallplace", args: WallPlaceArgs, callback?: (result: BannerCreateActionResult) => void): void;
         queryAction(action: "wallremove", args: WallRemoveArgs, callback?: (result: GameActionResult) => void): void;
         queryAction(action: "wallsetcolour", args: WallSetColourArgs, callback?: (result: GameActionResult) => void): void;
@@ -501,6 +503,8 @@ declare global {
         executeAction(action: "trackplace", args: TrackPlaceArgs, callback?: (result: GameActionResult) => void): void;
         executeAction(action: "trackremove", args: TrackRemoveArgs, callback?: (result: GameActionResult) => void): void;
         executeAction(action: "tracksetbrakespeed", args: TrackSetBrakeSpeedArgs, callback?: (result: GameActionResult) => void): void;
+        executeAction(action: "vendingmachineplace", args: VendingMachinePlaceArgs, callback?: (result: GameActionResult) => void): void;
+        executeAction(action: "vendingmachineremove", args: VendingMachineRemoveArgs, callback?: (result: GameActionResult) => void): void;
         executeAction(action: "wallplace", args: WallPlaceArgs, callback?: (result: BannerCreateActionResult) => void): void;
         executeAction(action: "wallremove", args: WallRemoveArgs, callback?: (result: GameActionResult) => void): void;
         executeAction(action: "wallsetcolour", args: WallSetColourArgs, callback?: (result: GameActionResult) => void): void;
@@ -764,6 +768,8 @@ declare global {
         "trackplace" |
         "trackremove" |
         "tracksetbrakespeed" |
+        "vendingmachineplace" |
+        "vendingmachineremove" |
         "wallplace" |
         "wallremove" |
         "wallsetcolour" |
@@ -859,6 +865,24 @@ declare global {
         x: number;
         y: number;
         z: number;
+    }
+
+    interface VendingMachinePlaceArgs extends GameActionArgs {
+        x: number;
+        y: number;
+        /** The base height of the footpath. */
+        z: number;
+        /** The unconnected footpath edge to stand against. */
+        direction: Direction;
+        /** A footpath addition object with isVendingMachine set. */
+        object: number;
+    }
+
+    interface VendingMachineRemoveArgs extends GameActionArgs {
+        x: number;
+        y: number;
+        z: number;
+        direction: Direction;
     }
 
     interface FootpathPlaceArgs extends GameActionArgs {
@@ -1807,14 +1831,15 @@ declare global {
     }
 
     type TileElementType =
-        "surface" | "footpath" | "track" | "small_scenery" | "wall" | "entrance" | "large_scenery" | "banner";
+        "surface" | "footpath" | "track" | "small_scenery" | "wall" | "entrance" | "large_scenery" | "banner"
+        | "vending_machine";
 
     type Direction = 0 | 1 | 2 | 3;
     type Direction8 = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
     type TileElement =
         SurfaceElement | FootpathElement | TrackElement | SmallSceneryElement | WallElement | EntranceElement
-        | LargeSceneryElement | BannerElement;
+        | LargeSceneryElement | BannerElement | VendingMachineElement;
 
     interface BaseTileElement {
         type: TileElementType;
@@ -1969,6 +1994,21 @@ declare global {
         readonly bannerIndex: number;
         bannerText: string;
         isNoEntry: boolean;
+    }
+
+    /**
+     * A vending machine standing on a footpath tile, against one of the path's unconnected edges.
+     * Its base height is the same as the footpath's.
+     */
+    interface VendingMachineElement extends BaseTileElement {
+        type: "vending_machine";
+
+        /** The edge of the tile the machine stands against. */
+        direction: Direction;
+        /** The index of the footpath addition object (one with isVendingMachine set). */
+        object: number;
+        isBroken: boolean;
+        stock: number;
     }
 
     /**

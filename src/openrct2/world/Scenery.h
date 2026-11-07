@@ -42,7 +42,9 @@ enum
     SCENERY_GHOST_FLAG_1 = (1 << SCENERY_TYPE_PATH_ITEM),
     SCENERY_GHOST_FLAG_2 = (1 << SCENERY_TYPE_WALL),
     SCENERY_GHOST_FLAG_3 = (1 << SCENERY_TYPE_LARGE),
-    SCENERY_GHOST_FLAG_4 = (1 << SCENERY_TYPE_BANNER)
+    SCENERY_GHOST_FLAG_4 = (1 << SCENERY_TYPE_BANNER),
+    // Vending machines are placed from the path items tab, but are their own tile element.
+    SCENERY_GHOST_FLAG_VENDING_MACHINE = (1 << SCENERY_TYPE_COUNT),
 };
 
 enum class ScatterToolDensity : uint8_t
@@ -62,6 +64,7 @@ extern uint8_t gSceneryPlaceRotation;
 extern uint8_t gSceneryGhostType;
 extern CoordsXYZ gSceneryGhostPosition;
 extern uint8_t gSceneryGhostWallRotation;
+extern uint8_t gSceneryGhostVendingMachineEdge;
 
 extern int16_t gSceneryShiftPressed;
 extern int16_t gSceneryShiftPressX;

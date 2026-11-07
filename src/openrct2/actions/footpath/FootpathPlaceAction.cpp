@@ -26,6 +26,7 @@
 #include "../../world/Map.h"
 #include "../../world/QuarterTile.h"
 #include "../../world/TileElementsView.h"
+#include "../../world/VendingMachine.h"
 #include "../../world/Wall.h"
 #include "../../world/tile_element/EntranceElement.h"
 #include "../../world/tile_element/PathElement.h"
@@ -276,6 +277,12 @@ namespace OpenRCT2::GameActions
         }
 
         RemoveIntersectingWalls(pathElement);
+
+        // Vending machines aren't allowed on queues. This must come last, as removing elements moves the path element.
+        if (_constructFlags & PathConstructFlag::IsQueue)
+        {
+            VendingMachinesRemoveFromPath(_loc);
+        }
         return res;
     }
 

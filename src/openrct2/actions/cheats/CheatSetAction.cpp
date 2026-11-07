@@ -40,6 +40,7 @@
 #include "../../world/tile_element/PathElement.h"
 #include "../../world/tile_element/SmallSceneryElement.h"
 #include "../../world/tile_element/SurfaceElement.h"
+#include "../../world/tile_element/VendingMachineElement.h"
 #include "../park/ParkSetLoanAction.h"
 #include "../park/ParkSetParameterAction.h"
 
@@ -483,6 +484,12 @@ namespace OpenRCT2::GameActions
         TileElementIteratorBegin(&it);
         do
         {
+            if (auto* machine = it.element->asVendingMachine(); machine != nullptr)
+            {
+                machine->setIsBroken(false);
+                continue;
+            }
+
             if (it.element->getType() != TileElementType::path)
                 continue;
 

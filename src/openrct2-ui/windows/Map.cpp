@@ -212,6 +212,7 @@ namespace OpenRCT2::Ui::Windows
         ColourPair(PaletteIndex::transparent),                      // TILE_ELEMENT_TYPE_WALL
         ColourPair(PaletteIndex::pi99),                             // TILE_ELEMENT_TYPE_LARGE_SCENERY
         ColourPair(PaletteIndex::transparent),                      // TILE_ELEMENT_TYPE_BANNER
+        ColourPair(PaletteIndex::transparent),                      // TILE_ELEMENT_TYPE_VENDING_MACHINE
     };
 
     namespace MapFlashingFlags

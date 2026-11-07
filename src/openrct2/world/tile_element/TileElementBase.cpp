@@ -19,6 +19,7 @@
 #include "SurfaceElement.h"
 #include "TileElement.h"
 #include "TrackElement.h"
+#include "VendingMachineElement.h"
 #include "WallElement.h"
 
 namespace OpenRCT2
@@ -206,5 +207,14 @@ namespace OpenRCT2
     BannerElement* TileElementBase::asBanner()
     {
         return as<BannerElement>();
+    }
+
+    const VendingMachineElement* TileElementBase::asVendingMachine() const
+    {
+        return as<VendingMachineElement>();
+    }
+    VendingMachineElement* TileElementBase::asVendingMachine()
+    {
+        return as<VendingMachineElement>();
     }
 } // namespace OpenRCT2

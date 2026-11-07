@@ -100,6 +100,8 @@ namespace OpenRCT2
         setGameSpeed,
         setRestrictedScenery,
         setRideVisibility,
+        placeVendingMachine,
+        removeVendingMachine,
         count,
     };
 }

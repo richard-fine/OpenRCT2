@@ -48,6 +48,7 @@ namespace OpenRCT2
     struct WallElement;
     struct EntranceElement;
     struct BannerElement;
+    struct VendingMachineElement;
 
 #pragma pack(push, 1)
     struct TileElementBase
@@ -120,6 +121,8 @@ namespace OpenRCT2
         EntranceElement* asEntrance();
         const BannerElement* asBanner() const;
         BannerElement* asBanner();
+        const VendingMachineElement* asVendingMachine() const;
+        VendingMachineElement* asVendingMachine();
     };
 #pragma pack(pop)
 } // namespace OpenRCT2

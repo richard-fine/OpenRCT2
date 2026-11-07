@@ -49,6 +49,7 @@
 #include "../world/ConstructionClearance.h"
 #include "../world/Footpath.h"
 #include "../world/Map.h"
+#include "../world/TileElementsView.h"
 #include "../world/Park.h"
 #include "../world/QuarterTile.h"
 #include "../world/tile_element/EntranceElement.h"
@@ -56,6 +57,7 @@
 #include "../world/tile_element/SurfaceElement.h"
 #include "../world/tile_element/TileElement.h"
 #include "../world/tile_element/TrackElement.h"
+#include "../world/tile_element/VendingMachineElement.h"
 #include "PatrolArea.h"
 #include "Staff.h"
 
@@ -2023,6 +2025,17 @@ namespace OpenRCT2
         if (pathElement->hasAddition() && pathElement->isBroken() && (pathElement->getEdges()) != 0xF)
         {
             vandalismPresent = true;
+        }
+        else
+        {
+            for (auto* machine : TileElementsView<VendingMachineElement>(coords))
+            {
+                if (machine->getBaseZ() == pathElement->getBaseZ() && machine->isBroken() && !machine->isGhost())
+                {
+                    vandalismPresent = true;
+                    break;
+                }
+            }
         }
 
         int16_t z = pathElement->getBaseZ();

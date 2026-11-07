@@ -10,6 +10,7 @@
 #include "Wall.h"
 
 #include "Map.h"
+#include "VendingMachine.h"
 #include "tile_element/TileElement.h"
 #include "tile_element/WallElement.h"
 
@@ -141,5 +142,7 @@ bool WallInTheWay(const CoordsXYRangedZ& fencePos, Direction direction)
 
         return true;
     } while (!(tileElement++)->isLastForTile());
-    return false;
+
+    // Vending machines stand against a path edge like a wall, and block it in the same way.
+    return VendingMachineInTheWay(fencePos, direction);
 }

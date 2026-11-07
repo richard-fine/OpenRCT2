@@ -174,7 +174,8 @@ namespace OpenRCT2
             else
             {
                 tileElementAbove++;
-                if (tileElementAbove->getType() == TileElementType::wall)
+                if (tileElementAbove->getType() == TileElementType::wall
+                    || tileElementAbove->getType() == TileElementType::vendingMachine)
                     continue;
                 // Grass should not be affected by ghost elements.
                 if (tileElementAbove->isGhost())

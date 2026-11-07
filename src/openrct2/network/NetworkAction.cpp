@@ -158,6 +158,8 @@ namespace OpenRCT2::Network
                 GameCommand::removePath,
                 GameCommand::placeFootpathAddition,
                 GameCommand::removeFootpathAddition,
+                GameCommand::placeVendingMachine,
+                GameCommand::removeVendingMachine,
             },
         },
         NetworkAction{

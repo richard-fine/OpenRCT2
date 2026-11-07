@@ -1812,7 +1812,8 @@ namespace OpenRCT2
             if (base_z < tileElement->baseHeight)
                 continue;
 
-            if (tileElement->getType() == TileElementType::path || tileElement->getType() == TileElementType::wall)
+            if (tileElement->getType() == TileElementType::path || tileElement->getType() == TileElementType::wall
+                || tileElement->getType() == TileElementType::vendingMachine)
                 continue;
 
             if (tileElement->getType() != TileElementType::smallScenery)

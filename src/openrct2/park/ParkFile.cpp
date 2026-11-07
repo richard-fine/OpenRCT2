@@ -1369,6 +1369,7 @@ namespace OpenRCT2
                                 break;
                             }
                             case TileElementType::entrance:
+                            case TileElementType::vendingMachine:
                                 break;
                             case TileElementType::wall:
                             {

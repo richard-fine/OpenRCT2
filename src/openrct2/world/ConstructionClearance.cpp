@@ -12,6 +12,7 @@
 #include "../GameState.h"
 #include "../localisation/Formatter.h"
 #include "../object/LargeSceneryEntry.h"
+#include "../object/PathAdditionEntry.h"
 #include "../object/SmallSceneryEntry.h"
 #include "../object/WallSceneryEntry.h"
 #include "../openrct2/Cheats.h"
@@ -29,6 +30,7 @@
 #include "tile_element/SurfaceElement.h"
 #include "tile_element/TileElement.h"
 #include "tile_element/TrackElement.h"
+#include "tile_element/VendingMachineElement.h"
 #include "tile_element/WallElement.h"
 
 using namespace OpenRCT2;
@@ -393,6 +395,15 @@ void MapGetObstructionErrorText(TileElement* tileElement, GameActions::Result& r
             res.errorMessage = STR_X_IN_THE_WAY;
             auto ft = Formatter(res.errorMessageArgs.data());
             StringId stringId = sceneryEntry != nullptr ? sceneryEntry->name : static_cast<StringId>(kStringIdEmpty);
+            ft.Add<StringId>(stringId);
+            break;
+        }
+        case TileElementType::vendingMachine:
+        {
+            auto* entry = tileElement->asVendingMachine()->getEntry();
+            res.errorMessage = STR_X_IN_THE_WAY;
+            auto ft = Formatter(res.errorMessageArgs.data());
+            StringId stringId = entry != nullptr ? entry->name : static_cast<StringId>(kStringIdEmpty);
             ft.Add<StringId>(stringId);
             break;
         }

@@ -258,7 +258,8 @@ static void VirtualFloorGetTileProperties(
             continue;
         }
 
-        if (elementType == TileElementType::wall || elementType == TileElementType::banner)
+        if (elementType == TileElementType::wall || elementType == TileElementType::banner
+            || elementType == TileElementType::vendingMachine)
         {
             int32_t direction = tileElement->getDirection();
             *outOccupiedEdges |= 1 << direction;

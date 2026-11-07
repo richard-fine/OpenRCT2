@@ -25,6 +25,7 @@
     #include "../../../world/tile_element/SmallSceneryElement.h"
     #include "../../../world/tile_element/SurfaceElement.h"
     #include "../../../world/tile_element/TrackElement.h"
+#include "../../../world/tile_element/VendingMachineElement.h"
     #include "../../../world/tile_element/WallElement.h"
 
 namespace OpenRCT2::Scripting
@@ -49,6 +50,8 @@ namespace OpenRCT2::Scripting
                 return "large_scenery";
             case TileElementType::banner:
                 return "banner";
+            case TileElementType::vendingMachine:
+                return "vending_machine";
             default:
                 return "unknown";
         }
@@ -95,6 +98,8 @@ namespace OpenRCT2::Scripting
             element->setType(TileElementType::largeScenery);
         else if (value == "banner")
             element->setType(TileElementType::banner);
+        else if (value == "vending_machine")
+            element->setType(TileElementType::vendingMachine);
         else
         {
             auto& scriptEngine = GetContext()->GetScriptEngine();
@@ -1295,6 +1300,11 @@ namespace OpenRCT2::Scripting
                 auto* el = element->asBanner();
                 return JS_NewUint32(ctx, el->getBanner()->type);
             }
+            case TileElementType::vendingMachine:
+            {
+                auto* el = element->asVendingMachine();
+                return JS_NewUint32(ctx, el->getEntryIndex());
+            }
             default:
                 return JS_NULL;
         }
@@ -1353,6 +1363,14 @@ namespace OpenRCT2::Scripting
                 auto* el = element->asEntrance();
                 index = std::clamp<uint32_t>(index, 0, 2);
                 el->setEntranceType(static_cast<EntranceType>(index));
+                Invalidate(data);
+                break;
+            }
+            case TileElementType::vendingMachine:
+            {
+                JS_UNPACK_UINT32(index, ctx, jsValue);
+                auto* el = element->asVendingMachine();
+                el->setEntryIndex(index);
                 Invalidate(data);
                 break;
             }
@@ -2084,6 +2102,56 @@ namespace OpenRCT2::Scripting
         return JS_UNDEFINED;
     }
 
+    JSValue ScTileElement::isBroken_get(JSContext* ctx, JSValue thisValue)
+    {
+        auto data = gScTileElement.GetOpaque<OpaqueTileElementData*>(thisValue);
+        auto* el = data->element->asVendingMachine();
+        if (el == nullptr)
+            return JS_NULL;
+        return JS_NewBool(ctx, el->isBroken());
+    }
+    JSValue ScTileElement::isBroken_set(JSContext* ctx, JSValue thisValue, JSValue jsValue)
+    {
+        if (JS_IsBool(jsValue))
+        {
+            JS_THROW_IF_GAME_STATE_NOT_MUTABLE();
+            auto data = gScTileElement.GetOpaque<OpaqueTileElementData*>(thisValue);
+            auto* el = data->element->asVendingMachine();
+            if (el != nullptr)
+            {
+                JS_UNPACK_BOOL(value, ctx, jsValue);
+                el->setIsBroken(value);
+                Invalidate(data);
+            }
+        }
+        return JS_UNDEFINED;
+    }
+
+    JSValue ScTileElement::stock_get(JSContext* ctx, JSValue thisValue)
+    {
+        auto data = gScTileElement.GetOpaque<OpaqueTileElementData*>(thisValue);
+        auto* el = data->element->asVendingMachine();
+        if (el == nullptr)
+            return JS_NULL;
+        return JS_NewUint32(ctx, el->getStock());
+    }
+    JSValue ScTileElement::stock_set(JSContext* ctx, JSValue thisValue, JSValue jsValue)
+    {
+        if (JS_IsNumber(jsValue))
+        {
+            JS_THROW_IF_GAME_STATE_NOT_MUTABLE();
+            auto data = gScTileElement.GetOpaque<OpaqueTileElementData*>(thisValue);
+            auto* el = data->element->asVendingMachine();
+            if (el != nullptr)
+            {
+                JS_UNPACK_UINT32(value, ctx, jsValue);
+                el->setStock(static_cast<uint16_t>(std::min<uint32_t>(value, std::numeric_limits<uint16_t>::max())));
+                Invalidate(data);
+            }
+        }
+        return JS_UNDEFINED;
+    }
+
     JSValue ScTileElement::isAdditionFull_get(JSContext* ctx, JSValue thisValue)
     {
         auto data = gScTileElement.GetOpaque<OpaqueTileElementData*>(thisValue);
@@ -2515,6 +2583,10 @@ namespace OpenRCT2::Scripting
             JS_CGETSET_DEF("isAdditionBroken", ScTileElement::isAdditionBroken_get, ScTileElement::isAdditionBroken_set),
             JS_CGETSET_DEF("isAdditionFull", ScTileElement::isAdditionFull_get, nullptr),
             JS_CGETSET_DEF("isAdditionGhost", ScTileElement::isAdditionGhost_get, ScTileElement::isAdditionGhost_set),
+
+            // Vending machine only
+            JS_CGETSET_DEF("isBroken", ScTileElement::isBroken_get, ScTileElement::isBroken_set),
+            JS_CGETSET_DEF("stock", ScTileElement::stock_get, ScTileElement::stock_set),
 
             // Track only
             JS_CGETSET_DEF("trackType", ScTileElement::trackType_get, ScTileElement::trackType_set),

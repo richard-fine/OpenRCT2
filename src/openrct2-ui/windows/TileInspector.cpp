@@ -51,6 +51,7 @@
 #include <openrct2/world/tile_element/SmallSceneryElement.h>
 #include <openrct2/world/tile_element/SurfaceElement.h>
 #include <openrct2/world/tile_element/TrackElement.h>
+#include <openrct2/world/tile_element/VendingMachineElement.h>
 #include <openrct2/world/tile_element/WallElement.h>
 
 using namespace OpenRCT2::Drawing;
@@ -466,7 +467,8 @@ namespace OpenRCT2::Ui::Windows
     static constexpr ViewportInteractionItems kViewportInteractionFlags{
         ViewportInteractionItem::terrain,  ViewportInteractionItem::ride,         ViewportInteractionItem::scenery,
         ViewportInteractionItem::footpath, ViewportInteractionItem::pathAddition, ViewportInteractionItem::parkEntrance,
-        ViewportInteractionItem::wall,     ViewportInteractionItem::largeScenery, ViewportInteractionItem::banner
+        ViewportInteractionItem::wall,     ViewportInteractionItem::largeScenery, ViewportInteractionItem::banner,
+        ViewportInteractionItem::vendingMachine,
     };
 
     static constexpr WidgetIndex kDisabledWidgetsDefault[] = {
@@ -1698,6 +1700,13 @@ namespace OpenRCT2::Ui::Windows
                         typeName = buffer;
                         break;
 
+                    case TileElementType::vendingMachine:
+                    {
+                        const auto* entry = tileElement->asVendingMachine()->getEntry();
+                        typeName = entry != nullptr ? LanguageGetString(entry->name) : "";
+                        break;
+                    }
+
                     default:
                         snprintf(
                             buffer, sizeof(buffer), "%s (%d)", LanguageGetString(STR_UNKNOWN_OBJECT_TYPE), EnumValue(type));
@@ -2118,6 +2127,11 @@ namespace OpenRCT2::Ui::Windows
 
                     case TileElementType::banner:
                         p = TileInspectorPage::banner;
+                        break;
+
+                    case TileElementType::vendingMachine:
+                        // TODO: Dedicated page (stock, broken).
+                        p = TileInspectorPage::standard;
                         break;
                 }
             }

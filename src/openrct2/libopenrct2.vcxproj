@@ -85,6 +85,8 @@
     <ClInclude Include="actions\footpath\FootpathLayoutPlaceAction.h" />
     <ClInclude Include="actions\footpath\FootpathPlaceAction.h" />
     <ClInclude Include="actions\footpath\FootpathRemoveAction.h" />
+    <ClInclude Include="actions\footpath\VendingMachinePlaceAction.h" />
+    <ClInclude Include="actions\footpath\VendingMachineRemoveAction.h" />
     <ClInclude Include="actions\GameAction.hpp" />
     <ClInclude Include="actions\GameActionParameterVisitor.h" />
     <ClInclude Include="actions\GameActionRegistry.h" />
@@ -431,6 +433,7 @@
     <ClInclude Include="paint\tile_element\Paint.TileElement.h" />
     <ClInclude Include="paint\tile_element\Paint.Track.h" />
     <ClInclude Include="paint\tile_element\Paint.Tunnel.h" />
+    <ClInclude Include="paint\tile_element\Paint.VendingMachine.h" />
     <ClInclude Include="paint\tile_element\Paint.Wall.h" />
     <ClInclude Include="paint\tile_element\Segment.h" />
     <ClInclude Include="paint\track\coaster\FlyingRollerCoasterInverted.h" />
@@ -724,6 +727,7 @@
     <ClInclude Include="world\SurfaceData.h" />
     <ClInclude Include="world\TileElementsView.h" />
     <ClInclude Include="world\TileInspector.h" />
+    <ClInclude Include="world\VendingMachine.h" />
     <ClInclude Include="world\TilePointerIndex.hpp" />
     <ClInclude Include="world\Weather.h" />
     <ClInclude Include="world\map_generator\HeightMap.hpp" />
@@ -744,6 +748,7 @@
     <ClInclude Include="world\tile_element\TileElementBase.h" />
     <ClInclude Include="world\tile_element\TileElementType.h" />
     <ClInclude Include="world\tile_element\TrackElement.h" />
+    <ClInclude Include="world\tile_element\VendingMachineElement.h" />
     <ClInclude Include="world\tile_element\WallElement.h" />
     <ClInclude Include="world\Wall.h" />
   </ItemGroup>
@@ -760,6 +765,8 @@
     <ClCompile Include="actions\footpath\FootpathLayoutPlaceAction.cpp" />
     <ClCompile Include="actions\footpath\FootpathPlaceAction.cpp" />
     <ClCompile Include="actions\footpath\FootpathRemoveAction.cpp" />
+    <ClCompile Include="actions\footpath\VendingMachinePlaceAction.cpp" />
+    <ClCompile Include="actions\footpath\VendingMachineRemoveAction.cpp" />
     <ClCompile Include="actions\GameAction.cpp" />
     <ClCompile Include="actions\GameActionRegistry.cpp" />
     <ClCompile Include="actions\GameActionResult.cpp" />
@@ -1054,6 +1061,7 @@
     <ClCompile Include="paint\tile_element\Paint.SmallScenery.cpp" />
     <ClCompile Include="paint\tile_element\Paint.Surface.cpp" />
     <ClCompile Include="paint\tile_element\Paint.TileElement.cpp" />
+    <ClCompile Include="paint\tile_element\Paint.VendingMachine.cpp" />
     <ClCompile Include="paint\tile_element\Paint.Wall.cpp" />
     <ClCompile Include="paint\tile_element\Paint.Tunnel.cpp" />
     <ClCompile Include="paint\track\coaster\AirPoweredVerticalCoaster.cpp" />
@@ -1303,6 +1311,7 @@
     <ClCompile Include="world\Scenery.cpp" />
     <ClCompile Include="world\SurfaceData.cpp" />
     <ClCompile Include="world\TileInspector.cpp" />
+    <ClCompile Include="world\VendingMachine.cpp" />
     <ClCompile Include="world\Weather.cpp" />
     <ClCompile Include="world\map_generator\MapGen.cpp" />
     <ClCompile Include="world\map_generator\MapHelpers.cpp" />
@@ -1320,6 +1329,7 @@
     <ClCompile Include="world\tile_element\TileElement.cpp" />
     <ClCompile Include="world\tile_element\TileElementBase.cpp" />
     <ClCompile Include="world\tile_element\TrackElement.cpp" />
+    <ClCompile Include="world\tile_element\VendingMachineElement.cpp" />
     <ClCompile Include="world\tile_element\WallElement.cpp" />
     <ClCompile Include="world\Wall.cpp" />
     <ClCompile Include="..\thirdparty\quickjs-ng\quickjs-amalgam.c">

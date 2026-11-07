@@ -102,6 +102,12 @@ namespace OpenRCT2::GameActions
         }
         PathAdditionFlags sceneryFlags = pathAdditionEntry->flags;
 
+        // Vending machines are their own tile element, placed with VendingMachinePlaceAction.
+        if (sceneryFlags.has(PathAdditionFlag::isVendingMachine))
+        {
+            return Result(Status::invalidParameters, STR_CANT_POSITION_THIS_HERE, STR_UNKNOWN_OBJECT_TYPE);
+        }
+
         if (sceneryFlags.has(PathAdditionFlag::dontAllowOnSlope) && pathElement->isSloped())
         {
             return Result(Status::invalidParameters, STR_CANT_POSITION_THIS_HERE, STR_CANT_BUILD_THIS_ON_SLOPED_FOOTPATH);

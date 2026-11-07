@@ -22,6 +22,7 @@
 #include <openrct2/SpriteIds.h>
 #include <openrct2/actions/GameActionRunner.h>
 #include <openrct2/actions/footpath/FootpathAdditionPlaceAction.h>
+#include <openrct2/actions/footpath/VendingMachinePlaceAction.h>
 #include <openrct2/actions/scenery/BannerPlaceAction.h>
 #include <openrct2/actions/scenery/BannerSetColourAction.h>
 #include <openrct2/actions/scenery/LargeSceneryPlaceAction.h>
@@ -1854,8 +1855,100 @@ namespace OpenRCT2::Ui::Windows
             gSceneryPlaceCost = cost;
         }
 
+        static bool isVendingMachineEntry(ObjectEntryIndex entryIndex)
+        {
+            auto* entry = ObjectEntryManager::GetObjectEntry<PathAdditionEntry>(entryIndex);
+            return entry != nullptr && entry->flags.has(PathAdditionFlag::isVendingMachine);
+        }
+
+        /**
+         * Finds the path under the cursor, and the unconnected edge of it nearest the cursor.
+         * gridPos is null if there is no path, or the path has no unconnected edge.
+         */
+        void updatePlacementVendingMachine(
+            const ScreenCoordsXY& screenPos, ObjectEntryIndex entryIndex, CoordsXY& gridPos, int32_t* outZ,
+            Direction* outEdge)
+        {
+            updatePlacementPathItem(screenPos, entryIndex, gridPos, outZ);
+            if (gridPos.isNull())
+                return;
+
+            auto* pathElement = MapGetFootpathElement({ gridPos, *outZ });
+            auto cursorPos = ScreenGetMapXYWithZ(screenPos, *outZ);
+            if (pathElement == nullptr || !cursorPos.has_value())
+            {
+                gridPos.setNull();
+                return;
+            }
+
+            // Distance from the cursor to each side of the tile, indexed by direction.
+            const auto tileStart = gridPos.toTileStart();
+            const int32_t localX = std::clamp(cursorPos->x - tileStart.x, 0, kCoordsXYStep - 1);
+            const int32_t localY = std::clamp(cursorPos->y - tileStart.y, 0, kCoordsXYStep - 1);
+            const int32_t distances[kNumOrthogonalDirections] = {
+                localX, kCoordsXYStep - 1 - localY, kCoordsXYStep - 1 - localX, localY
+            };
+
+            const auto edges = pathElement->getEdges();
+            int32_t bestDistance = std::numeric_limits<int32_t>::max();
+            std::optional<Direction> bestEdge;
+            for (Direction edge = 0; edge < kNumOrthogonalDirections; edge++)
+            {
+                if ((edges & (1 << edge)) == 0 && distances[edge] < bestDistance)
+                {
+                    bestDistance = distances[edge];
+                    bestEdge = edge;
+                }
+            }
+
+            if (!bestEdge.has_value())
+            {
+                gridPos.setNull();
+                return;
+            }
+            gridPos = tileStart;
+            *outEdge = *bestEdge;
+        }
+
+        void onToolUpdateVendingMachine(const ScreenCoordsXY& screenPos, ScenerySelection selection)
+        {
+            CoordsXY mapTile = {};
+            int32_t z = 0;
+            Direction edge = 0;
+
+            updatePlacementVendingMachine(screenPos, selection.EntryIndex, mapTile, &z, &edge);
+
+            if (mapTile.isNull())
+            {
+                SceneryRemoveGhostToolPlacement();
+                return;
+            }
+
+            gMapSelectFlags.set(MapSelectFlag::enable);
+            gMapSelectPositionA = mapTile;
+            gMapSelectPositionB = mapTile;
+            gMapSelectType = getMapSelectEdge(edge);
+
+            // If no change in ghost placement
+            if ((gSceneryGhostType & SCENERY_GHOST_FLAG_VENDING_MACHINE) && mapTile == gSceneryGhostPosition
+                && z == gSceneryGhostPosition.z && edge == gSceneryGhostVendingMachineEdge)
+            {
+                return;
+            }
+
+            SceneryRemoveGhostToolPlacement();
+
+            gSceneryPlaceCost = TryPlaceGhostVendingMachine({ mapTile, z, edge }, selection.EntryIndex);
+        }
+
         void onToolUpdatePathItem(WidgetIndex widgetIndex, const ScreenCoordsXY& screenPos, ScenerySelection selection)
         {
+            if (isVendingMachineEntry(selection.EntryIndex))
+            {
+                onToolUpdateVendingMachine(screenPos, selection);
+                return;
+            }
+
             CoordsXY mapTile = {};
             int32_t z;
 
@@ -2123,6 +2216,22 @@ namespace OpenRCT2::Ui::Windows
             }
 
             gSceneryGhostType |= SCENERY_GHOST_FLAG_0;
+            return res.cost;
+        }
+
+        money64 TryPlaceGhostVendingMachine(const CoordsXYZD& loc, ObjectEntryIndex entryIndex)
+        {
+            SceneryRemoveGhostToolPlacement();
+
+            auto placeAction = GameActions::VendingMachinePlaceAction(loc, entryIndex);
+            placeAction.SetFlags({ CommandFlag::ghost, CommandFlag::allowDuringPaused });
+            auto res = GameActions::Execute(&placeAction, getGameState());
+            if (res.error != GameActions::Status::ok)
+                return kMoney64Undefined;
+
+            gSceneryGhostPosition = loc;
+            gSceneryGhostVendingMachineEdge = loc.direction;
+            gSceneryGhostType |= SCENERY_GHOST_FLAG_VENDING_MACHINE;
             return res.cost;
         }
 
@@ -3028,8 +3137,37 @@ namespace OpenRCT2::Ui::Windows
             }
         }
 
+        void onToolDownVendingMachine(const ScreenCoordsXY& screenCoords, ObjectEntryIndex selectedScenery)
+        {
+            CoordsXY gridPos;
+            int32_t z = 0;
+            Direction edge = 0;
+
+            updatePlacementVendingMachine(screenCoords, selectedScenery, gridPos, &z, &edge);
+            if (gridPos.isNull())
+                return;
+
+            auto placeAction = GameActions::VendingMachinePlaceAction({ gridPos, z, edge }, selectedScenery);
+            placeAction.SetCallback([](const GameActions::GameAction* ga, const GameActions::Result* result) {
+                if (result->error != GameActions::Status::ok)
+                {
+                    return;
+                }
+                Audio::Play3D(Audio::SoundId::placeItem, result->position);
+            });
+
+            GameActions::Execute(&placeAction, getGameState());
+        }
+
         void onToolDownPathItem(WidgetIndex widgetIndex, const ScreenCoordsXY& screenCoords, uint16_t selectedScenery)
         {
+            if (isVendingMachineEntry(selectedScenery))
+            {
+                SceneryRemoveGhostToolPlacement();
+                onToolDownVendingMachine(screenCoords, selectedScenery);
+                return;
+            }
+
             CoordsXY gridPos;
             int32_t z;
 

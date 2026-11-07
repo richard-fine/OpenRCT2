@@ -19,6 +19,7 @@
 #include "../../world/tile_element/Slope.h"
 #include "../../world/tile_element/SurfaceElement.h"
 #include "../../world/tile_element/TileElement.h"
+#include "../../world/tile_element/VendingMachineElement.h"
 #include "../Paint.SessionFlags.h"
 #include "../Paint.h"
 #include "../VirtualFloor.h"
@@ -29,6 +30,7 @@
 #include "Paint.SmallScenery.h"
 #include "Paint.Surface.h"
 #include "Paint.Track.h"
+#include "Paint.VendingMachine.h"
 #include "Paint.Wall.h"
 #include "Segment.h"
 
@@ -284,6 +286,9 @@ static void PaintTileElementBase(PaintSession& session, const CoordsXY& origCoor
                 break;
             case TileElementType::banner:
                 PaintBanner(session, direction, baseZ, *(tile_element->asBanner()));
+                break;
+            case TileElementType::vendingMachine:
+                PaintVendingMachine(session, direction, baseZ, *(tile_element->asVendingMachine()));
                 break;
         }
         session.MapPosition = mapPosition;

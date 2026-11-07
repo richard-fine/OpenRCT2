@@ -47,6 +47,7 @@
 #include "../../world/tile_element/SmallSceneryElement.h"
 #include "../../world/tile_element/SurfaceElement.h"
 #include "../../world/tile_element/TileElement.h"
+#include "../../world/tile_element/VendingMachineElement.h"
 #include "../../world/tile_element/WallElement.h"
 
 #include <array>
@@ -424,6 +425,10 @@ namespace OpenRCT2::Editor
                 case TileElementType::largeScenery:
                     type = iter.element->asLargeScenery()->getEntryIndex();
                     Editor::SetSelectedObject(ObjectType::largeScenery, type, ObjectSelectionFlag::inUse);
+                    break;
+                case TileElementType::vendingMachine:
+                    type = iter.element->asVendingMachine()->getEntryIndex();
+                    Editor::SetSelectedObject(ObjectType::pathAdditions, type, ObjectSelectionFlag::inUse);
                     break;
                 case TileElementType::banner:
                 {

@@ -32,6 +32,7 @@
 #include "tile_element/SmallSceneryElement.h"
 #include "tile_element/SurfaceElement.h"
 #include "tile_element/TrackElement.h"
+#include "tile_element/VendingMachineElement.h"
 #include "tile_element/WallElement.h"
 
 TileCoordsXY windowTileInspectorTile;
@@ -262,6 +263,7 @@ namespace OpenRCT2::TileInspector
                 case TileElementType::track:
                 case TileElementType::smallScenery:
                 case TileElementType::wall:
+                case TileElementType::vendingMachine:
                     newRotation = tileElement->getDirectionWithOffset(1);
                     tileElement->setDirection(newRotation);
                     break;

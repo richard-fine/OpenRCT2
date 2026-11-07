@@ -18,6 +18,7 @@
 #include "../../world/Location.hpp"
 #include "../../world/Map.h"
 #include "../../world/TileElementsView.h"
+#include "../../world/VendingMachine.h"
 #include "../../world/tile_element/BannerElement.h"
 #include "../../world/tile_element/PathElement.h"
 #include "../GameActionRunner.h"
@@ -87,6 +88,10 @@ namespace OpenRCT2::GameActions
             FootpathInterruptPeeps(_loc);
             FootpathRemoveLitter(_loc);
         }
+
+        // Vending machines can't stand without their path. Remove them first, as removing elements
+        // moves the path element.
+        VendingMachinesRemoveFromPath(_loc);
 
         TileElement* footpathElement = GetFootpathElement();
         if (footpathElement != nullptr)

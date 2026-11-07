@@ -21,6 +21,7 @@
 #include <openrct2/actions/GameActionRunner.h>
 #include <openrct2/actions/footpath/FootpathAdditionRemoveAction.h>
 #include <openrct2/actions/footpath/FootpathRemoveAction.h>
+#include <openrct2/actions/footpath/VendingMachineRemoveAction.h>
 #include <openrct2/actions/general/BalloonPressAction.h>
 #include <openrct2/actions/park/ParkEntranceRemoveAction.h>
 #include <openrct2/actions/scenery/LargeSceneryRemoveAction.h>
@@ -55,6 +56,7 @@
 #include <openrct2/world/tile_element/SmallSceneryElement.h>
 #include <openrct2/world/tile_element/SurfaceElement.h>
 #include <openrct2/world/tile_element/TrackElement.h>
+#include <openrct2/world/tile_element/VendingMachineElement.h>
 #include <openrct2/world/tile_element/WallElement.h>
 
 using namespace OpenRCT2;
@@ -65,6 +67,8 @@ namespace OpenRCT2::Ui
     static void ViewportInteractionRemoveScenery(const SmallSceneryElement& smallSceneryElement, const CoordsXY& mapCoords);
     static void ViewportInteractionRemoveFootpath(const PathElement& pathElement, const CoordsXY& mapCoords);
     static void ViewportInteractionRemovePathAddition(const PathElement& pathElement, const CoordsXY& mapCoords);
+    static void ViewportInteractionRemoveVendingMachine(
+        const VendingMachineElement& machineElement, const CoordsXY& mapCoords);
     static void ViewportInteractionRemoveParkWall(const WallElement& wallElement, const CoordsXY& mapCoords);
     static void ViewportInteractionRemoveLargeScenery(
         const LargeSceneryElement& largeSceneryElement, const CoordsXY& mapCoords);
@@ -276,7 +280,8 @@ namespace OpenRCT2::Ui
                                                    ViewportInteractionItem::scenery,      ViewportInteractionItem::footpath,
                                                    ViewportInteractionItem::pathAddition, ViewportInteractionItem::parkEntrance,
                                                    ViewportInteractionItem::wall,         ViewportInteractionItem::largeScenery,
-                                                   ViewportInteractionItem::label,        ViewportInteractionItem::banner };
+                                                   ViewportInteractionItem::label,        ViewportInteractionItem::banner,
+                                                   ViewportInteractionItem::vendingMachine };
         info = GetMapCoordinatesFromPos(screenCoords, kFlags);
         auto tileElement = info.Element;
 
@@ -507,6 +512,18 @@ namespace OpenRCT2::Ui
                 SetMapTooltip(ft);
                 return info;
             }
+            case ViewportInteractionItem::vendingMachine:
+            {
+                auto* machineEntry = tileElement->asVendingMachine()->getEntry();
+                ft.Add<StringId>(STR_MAP_TOOLTIP_STRINGID_CLICK_TO_REMOVE);
+                if (tileElement->asVendingMachine()->isBroken())
+                {
+                    ft.Add<StringId>(STR_BROKEN);
+                }
+                ft.Add<StringId>(machineEntry != nullptr ? machineEntry->name : kStringIdNone);
+                SetMapTooltip(ft);
+                return info;
+            }
             case ViewportInteractionItem::parkEntrance:
                 if (gLegacyScene != LegacyScene::scenarioEditor && !getGameState().cheats.sandboxMode)
                     break;
@@ -598,6 +615,9 @@ namespace OpenRCT2::Ui
             case ViewportInteractionItem::pathAddition:
                 ViewportInteractionRemovePathAddition(*info.Element->asPath(), info.Loc);
                 break;
+            case ViewportInteractionItem::vendingMachine:
+                ViewportInteractionRemoveVendingMachine(*info.Element->asVendingMachine(), info.Loc);
+                break;
             case ViewportInteractionItem::parkEntrance:
                 ViewportInteractionRemoveParkEntrance(*info.Element->asEntrance(), info.Loc);
                 break;
@@ -660,6 +680,14 @@ namespace OpenRCT2::Ui
         auto footpathAdditionRemoveAction = GameActions::FootpathAdditionRemoveAction(
             { mapCoords.x, mapCoords.y, pathElement.getBaseZ() });
         GameActions::Execute(&footpathAdditionRemoveAction, getGameState());
+    }
+
+    static void ViewportInteractionRemoveVendingMachine(
+        const VendingMachineElement& machineElement, const CoordsXY& mapCoords)
+    {
+        auto removeAction = GameActions::VendingMachineRemoveAction(
+            { mapCoords.x, mapCoords.y, machineElement.getBaseZ(), machineElement.getDirection() });
+        GameActions::Execute(&removeAction, getGameState());
     }
 
     /**

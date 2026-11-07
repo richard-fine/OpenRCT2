@@ -64,6 +64,7 @@
 #include "../world/tile_element/PathElement.h"
 #include "../world/tile_element/SurfaceElement.h"
 #include "../world/tile_element/TrackElement.h"
+#include "../world/tile_element/VendingMachineElement.h"
 #include "../world/tile_element/WallElement.h"
 #include "Peep.h"
 #include "Staff.h"
@@ -6237,6 +6238,22 @@ namespace OpenRCT2
         return nullptr;
     }
 
+    static VendingMachineElement* FindBreakableVendingMachine(const CoordsXYZ& loc)
+    {
+        for (auto* machine : TileElementsView<VendingMachineElement>(loc))
+        {
+            if (machine->getBaseZ() != loc.z || machine->isGhost() || machine->isBroken())
+                continue;
+
+            auto* entry = machine->getEntry();
+            if (entry == nullptr || !entry->flags.has(PathAdditionFlag::breakable))
+                continue;
+
+            return machine;
+        }
+        return nullptr;
+    }
+
     /**
      *
      *  rct2: 0x00690848
@@ -6266,11 +6283,12 @@ namespace OpenRCT2
             return;
 
         auto* tileElement = FindBreakableElement(guest.nextLoc);
-        if (tileElement == nullptr)
+        // Path additions take priority, so parks without vending machines behave exactly as before.
+        auto* machine = tileElement == nullptr ? FindBreakableVendingMachine(guest.nextLoc) : nullptr;
+        if (tileElement == nullptr && machine == nullptr)
             return;
 
-        int32_t edges = tileElement->getEdges();
-        if (edges == 0xF)
+        if (tileElement != nullptr && tileElement->getEdges() == 0xF)
             return;
 
         // Check if a peep is already sitting on the bench. If so, do not vandalise it.
@@ -6300,9 +6318,16 @@ namespace OpenRCT2
             }
         }
 
-        tileElement->setIsBroken(true);
-
-        MapInvalidateTileZoom1({ guest.nextLoc, tileElement->getBaseZ(), tileElement->getBaseZ() + 32 });
+        if (tileElement != nullptr)
+        {
+            tileElement->setIsBroken(true);
+            MapInvalidateTileZoom1({ guest.nextLoc, tileElement->getBaseZ(), tileElement->getBaseZ() + 32 });
+        }
+        else
+        {
+            machine->setIsBroken(true);
+            MapInvalidateTileZoom1({ guest.nextLoc, machine->getBaseZ(), machine->getClearanceZ() });
+        }
 
         guest.angriness = 16;
     }
