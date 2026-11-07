@@ -15,6 +15,7 @@
 #include "../GameState.h"
 #include "../OpenRCT2.h"
 #include "../actions/GameActionRunner.h"
+#include "../actions/footpath/VendingMachineRemoveAction.h"
 #include "../actions/park/ParkEntranceRemoveAction.h"
 #include "../actions/scenery/BannerRemoveAction.h"
 #include "../actions/scenery/LargeSceneryRemoveAction.h"
@@ -41,6 +42,7 @@
 #include "Park.h"
 #include "Scenery.h"
 #include "TileElementsView.h"
+#include "VendingMachine.h"
 #include "tile_element/BannerElement.h"
 #include "tile_element/EntranceElement.h"
 #include "tile_element/LargeSceneryElement.h"
@@ -1453,6 +1455,19 @@ namespace OpenRCT2
                 }
             }
             break;
+            case TileElementType::vendingMachine:
+            {
+                auto removeAction = GameActions::VendingMachineRemoveAction(
+                    { loc.x, loc.y, element->getBaseZ(), element->getDirection() });
+                auto result = GameActions::ExecuteNested(&removeAction, gameState);
+                // If asking nicely did not work, forcibly remove this to avoid an infinite loop.
+                if (result.error != GameActions::Status::ok)
+                {
+                    VendingMachineDeleteRecordFor(*element);
+                    TileElementRemove(element);
+                }
+                break;
+            }
             case TileElementType::banner:
             {
                 auto bannerRemoveAction = GameActions::BannerRemoveAction(

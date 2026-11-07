@@ -22,6 +22,7 @@
 #include "Banner.h"
 #include "Location.hpp"
 #include "Map.h"
+#include "VendingMachine.h"
 #include "MapAnimation.h"
 #include "Park.h"
 #include "tile_element/BannerElement.h"
@@ -163,6 +164,7 @@ namespace OpenRCT2::TileInspector
                 // Removes any potential banners from the entry
                 tileElement->removeBannerEntry();
             }
+            VendingMachineDeleteRecordFor(*tileElement);
 
             TileElementRemove(tileElement);
 
@@ -344,6 +346,24 @@ namespace OpenRCT2::TileInspector
 
             // The occupiedQuadrants will be automatically set when the element is copied over, so it's not necessary to set
             // them correctly _here_.
+            // A pasted vending machine gets its own copy of the copied machine's price and statistics
+            if (auto* machineElement = element.asVendingMachine(); machineElement != nullptr && !element.isGhost())
+            {
+                const auto* sourceMachine = machineElement->getMachine();
+                auto* newMachine = CreateVendingMachine(
+                    machineElement->getEntryIndex(),
+                    TileCoordsXYZD(CoordsXYZD{ loc, element.getBaseZ(), element.getDirection() }));
+                if (newMachine != nullptr && sourceMachine != nullptr)
+                {
+                    const auto newId = newMachine->id;
+                    const auto newPosition = newMachine->position;
+                    *newMachine = *sourceMachine;
+                    newMachine->id = newId;
+                    newMachine->position = newPosition;
+                }
+                machineElement->setMachineIndex(newMachine != nullptr ? newMachine->id : VendingMachineIndex::GetNull());
+            }
+
             TileElement* const pastedElement = TileElementInsert({ loc, element.getBaseZ() }, 0b0000, TileElementType::surface);
 
             bool lastForTile = pastedElement->isLastForTile();

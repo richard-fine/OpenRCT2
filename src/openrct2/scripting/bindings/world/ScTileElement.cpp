@@ -25,6 +25,7 @@
     #include "../../../world/tile_element/SmallSceneryElement.h"
     #include "../../../world/tile_element/SurfaceElement.h"
     #include "../../../world/tile_element/TrackElement.h"
+#include "../../../world/VendingMachine.h"
 #include "../../../world/tile_element/VendingMachineElement.h"
     #include "../../../world/tile_element/WallElement.h"
 
@@ -2152,6 +2153,26 @@ namespace OpenRCT2::Scripting
         return JS_UNDEFINED;
     }
 
+    JSValue ScTileElement::vendingMachine_get(JSContext* ctx, JSValue thisValue)
+    {
+        auto data = gScTileElement.GetOpaque<OpaqueTileElementData*>(thisValue);
+        auto* el = data->element->asVendingMachine();
+        if (el == nullptr)
+            return JS_NULL;
+        const auto* machine = el->getMachine();
+        if (machine == nullptr)
+            return JS_NULL;
+
+        auto obj = JS_NewObject(ctx);
+        JS_SetPropertyStr(ctx, obj, "index", JS_NewUint32(ctx, machine->id.ToUnderlying()));
+        JS_SetPropertyStr(ctx, obj, "price", JS_NewInt64(ctx, machine->price));
+        JS_SetPropertyStr(ctx, obj, "totalProfit", JS_NewInt64(ctx, machine->totalProfit));
+        JS_SetPropertyStr(ctx, obj, "totalCustomers", JS_NewUint32(ctx, machine->totalCustomers));
+        JS_SetPropertyStr(ctx, obj, "itemsSold", JS_NewUint32(ctx, machine->numItemsSold));
+        JS_SetPropertyStr(ctx, obj, "timesRestocked", JS_NewUint32(ctx, machine->timesRestocked));
+        return obj;
+    }
+
     JSValue ScTileElement::isAdditionFull_get(JSContext* ctx, JSValue thisValue)
     {
         auto data = gScTileElement.GetOpaque<OpaqueTileElementData*>(thisValue);
@@ -2427,6 +2448,8 @@ namespace OpenRCT2::Scripting
 
     void ScTileElement::RemoveBannerEntryIfNeeded(TileElement* element, CoordsXY& coords)
     {
+        VendingMachineDeleteRecordFor(*element);
+
         // check if other element still uses the banner entry
         const auto* largeSceneryEntry = element->getType() == TileElementType::largeScenery
             ? element->asLargeScenery()->getEntry()
@@ -2587,6 +2610,7 @@ namespace OpenRCT2::Scripting
             // Vending machine only
             JS_CGETSET_DEF("isBroken", ScTileElement::isBroken_get, ScTileElement::isBroken_set),
             JS_CGETSET_DEF("stock", ScTileElement::stock_get, ScTileElement::stock_set),
+            JS_CGETSET_DEF("vendingMachine", ScTileElement::vendingMachine_get, nullptr),
 
             // Track only
             JS_CGETSET_DEF("trackType", ScTileElement::trackType_get, ScTileElement::trackType_set),

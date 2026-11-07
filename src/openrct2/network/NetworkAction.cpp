@@ -122,6 +122,7 @@ namespace OpenRCT2::Network
                 GameCommand::setRideVehicles,
                 GameCommand::setRideSetting,
                 GameCommand::setRidePrice,
+                GameCommand::setVendingMachinePrice,
                 GameCommand::setBrakesSpeed,
                 GameCommand::setColourScheme,
             },

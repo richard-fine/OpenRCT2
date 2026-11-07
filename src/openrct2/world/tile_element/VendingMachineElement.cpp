@@ -11,6 +11,7 @@
 
 #include "../../object/ObjectEntryManager.h"
 #include "../../object/PathAdditionEntry.h"
+#include "../VendingMachine.h"
 
 namespace OpenRCT2
 {
@@ -51,13 +52,18 @@ namespace OpenRCT2
         stock = newStock;
     }
 
-    uint16_t VendingMachineElement::getMachineIndex() const
+    VendingMachineIndex VendingMachineElement::getMachineIndex() const
     {
         return machineIndex;
     }
 
-    void VendingMachineElement::setMachineIndex(uint16_t newIndex)
+    void VendingMachineElement::setMachineIndex(VendingMachineIndex newIndex)
     {
         machineIndex = newIndex;
+    }
+
+    VendingMachine* VendingMachineElement::getMachine() const
+    {
+        return GetVendingMachine(machineIndex);
     }
 } // namespace OpenRCT2

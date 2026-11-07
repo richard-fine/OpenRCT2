@@ -87,6 +87,7 @@
     <ClInclude Include="actions\footpath\FootpathRemoveAction.h" />
     <ClInclude Include="actions\footpath\VendingMachinePlaceAction.h" />
     <ClInclude Include="actions\footpath\VendingMachineRemoveAction.h" />
+    <ClInclude Include="actions\footpath\VendingMachineSetPriceAction.h" />
     <ClInclude Include="actions\GameAction.hpp" />
     <ClInclude Include="actions\GameActionParameterVisitor.h" />
     <ClInclude Include="actions\GameActionRegistry.h" />
@@ -767,6 +768,7 @@
     <ClCompile Include="actions\footpath\FootpathRemoveAction.cpp" />
     <ClCompile Include="actions\footpath\VendingMachinePlaceAction.cpp" />
     <ClCompile Include="actions\footpath\VendingMachineRemoveAction.cpp" />
+    <ClCompile Include="actions\footpath\VendingMachineSetPriceAction.cpp" />
     <ClCompile Include="actions\GameAction.cpp" />
     <ClCompile Include="actions\GameActionRegistry.cpp" />
     <ClCompile Include="actions\GameActionResult.cpp" />

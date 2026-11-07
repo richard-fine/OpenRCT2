@@ -143,6 +143,11 @@ namespace OpenRCT2::GameActions
             return Result(Status::noFreeElements, STR_CANT_POSITION_THIS_HERE, STR_TILE_ELEMENT_LIMIT_REACHED);
         }
 
+        if (existing == nullptr && !GetFlags().has(CommandFlag::ghost) && HasReachedVendingMachineLimit())
+        {
+            return Result(Status::noFreeElements, STR_CANT_POSITION_THIS_HERE, STR_TOO_MANY_VENDING_MACHINES_IN_GAME);
+        }
+
         res.cost = entry->price;
         return res;
     }
@@ -168,19 +173,37 @@ namespace OpenRCT2::GameActions
                 return res;
             }
 
-            // Re-placing the same machine repairs it; a different machine replaces it with a fresh one.
+            // Re-placing the same machine repairs it, keeping its price and statistics; a different machine
+            // replaces it with a fresh one.
             if (machine->getEntryIndex() != _entryIndex)
             {
                 machine->setEntryIndex(_entryIndex);
                 machine->setStock(entry->stockCapacity);
+
+                DeleteVendingMachine(machine->getMachineIndex());
+                auto* record = CreateVendingMachine(_entryIndex, TileCoordsXYZD(_loc));
+                machine->setMachineIndex(record != nullptr ? record->id : VendingMachineIndex::GetNull());
             }
             machine->setIsBroken(false);
         }
         else
         {
+            VendingMachine* record = nullptr;
+            if (!isGhost)
+            {
+                record = CreateVendingMachine(_entryIndex, TileCoordsXYZD(_loc));
+                if (record == nullptr)
+                {
+                    return Result(
+                        Status::noFreeElements, STR_CANT_POSITION_THIS_HERE, STR_TOO_MANY_VENDING_MACHINES_IN_GAME);
+                }
+            }
+
             machine = TileElementInsert<VendingMachineElement>(_loc, 0b0000);
             if (machine == nullptr)
             {
+                if (record != nullptr)
+                    DeleteVendingMachine(record->id);
                 return Result(Status::noFreeElements, STR_CANT_POSITION_THIS_HERE, STR_TILE_ELEMENT_LIMIT_REACHED);
             }
 
@@ -189,7 +212,7 @@ namespace OpenRCT2::GameActions
             machine->setEntryIndex(_entryIndex);
             machine->setIsBroken(false);
             machine->setStock(entry->stockCapacity);
-            machine->setMachineIndex(0xFFFF);
+            machine->setMachineIndex(record != nullptr ? record->id : VendingMachineIndex::GetNull());
             machine->setGhost(isGhost);
         }
 

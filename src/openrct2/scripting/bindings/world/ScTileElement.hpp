@@ -183,6 +183,7 @@ namespace OpenRCT2::Scripting
         static JSValue isBroken_set(JSContext* ctx, JSValue thisValue, JSValue jsValue);
         static JSValue stock_get(JSContext* ctx, JSValue thisValue);
         static JSValue stock_set(JSContext* ctx, JSValue thisValue, JSValue jsValue);
+        static JSValue vendingMachine_get(JSContext* ctx, JSValue thisValue);
 
         static JSValue isAdditionGhost_get(JSContext* ctx, JSValue thisValue);
         static JSValue isAdditionGhost_set(JSContext* ctx, JSValue thisValue, JSValue jsValue);

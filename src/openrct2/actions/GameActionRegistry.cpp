@@ -18,6 +18,7 @@
 #include "footpath/FootpathRemoveAction.h"
 #include "footpath/VendingMachinePlaceAction.h"
 #include "footpath/VendingMachineRemoveAction.h"
+#include "footpath/VendingMachineSetPriceAction.h"
 #include "general/BalloonPressAction.h"
 #include "general/CustomAction.h"
 #include "general/GameSetSpeedAction.h"
@@ -145,6 +146,7 @@ namespace OpenRCT2::GameActions
         REGISTER_ACTION(FootpathAdditionRemoveAction);
         REGISTER_ACTION(VendingMachinePlaceAction);
         REGISTER_ACTION(VendingMachineRemoveAction);
+        REGISTER_ACTION(VendingMachineSetPriceAction);
         REGISTER_ACTION(GuestSetNameAction);
         REGISTER_ACTION(MazePlaceTrackAction);
         REGISTER_ACTION(MazeSetTrackAction);

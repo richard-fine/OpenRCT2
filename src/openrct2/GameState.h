@@ -23,6 +23,7 @@
 #include "world/Location.hpp"
 #include "world/ParkData.h"
 #include "world/ScenerySelection.h"
+#include "world/VendingMachine.h"
 #include "world/Weather.h"
 
 #include <array>
@@ -59,6 +60,7 @@ namespace OpenRCT2
         std::string scenarioFileName;
 
         std::vector<Banner> banners;
+        std::vector<VendingMachine> vendingMachines;
 
         EntityRegistry entities;
 

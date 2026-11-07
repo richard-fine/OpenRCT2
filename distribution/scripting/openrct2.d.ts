@@ -412,6 +412,7 @@ declare global {
         queryAction(action: "tracksetbrakespeed", args: TrackSetBrakeSpeedArgs, callback?: (result: GameActionResult) => void): void;
         queryAction(action: "vendingmachineplace", args: VendingMachinePlaceArgs, callback?: (result: GameActionResult) => void): void;
         queryAction(action: "vendingmachineremove", args: VendingMachineRemoveArgs, callback?: (result: GameActionResult) => void): void;
+        queryAction(action: "vendingmachinesetprice", args: VendingMachineSetPriceArgs, callback?: (result: GameActionResult) => void): void;
         queryAction(action: "wallplace", args: WallPlaceArgs, callback?: (result: BannerCreateActionResult) => void): void;
         queryAction(action: "wallremove", args: WallRemoveArgs, callback?: (result: GameActionResult) => void): void;
         queryAction(action: "wallsetcolour", args: WallSetColourArgs, callback?: (result: GameActionResult) => void): void;
@@ -505,6 +506,7 @@ declare global {
         executeAction(action: "tracksetbrakespeed", args: TrackSetBrakeSpeedArgs, callback?: (result: GameActionResult) => void): void;
         executeAction(action: "vendingmachineplace", args: VendingMachinePlaceArgs, callback?: (result: GameActionResult) => void): void;
         executeAction(action: "vendingmachineremove", args: VendingMachineRemoveArgs, callback?: (result: GameActionResult) => void): void;
+        executeAction(action: "vendingmachinesetprice", args: VendingMachineSetPriceArgs, callback?: (result: GameActionResult) => void): void;
         executeAction(action: "wallplace", args: WallPlaceArgs, callback?: (result: BannerCreateActionResult) => void): void;
         executeAction(action: "wallremove", args: WallRemoveArgs, callback?: (result: GameActionResult) => void): void;
         executeAction(action: "wallsetcolour", args: WallSetColourArgs, callback?: (result: GameActionResult) => void): void;
@@ -770,6 +772,7 @@ declare global {
         "tracksetbrakespeed" |
         "vendingmachineplace" |
         "vendingmachineremove" |
+        "vendingmachinesetprice" |
         "wallplace" |
         "wallremove" |
         "wallsetcolour" |
@@ -883,6 +886,12 @@ declare global {
         y: number;
         z: number;
         direction: Direction;
+    }
+
+    interface VendingMachineSetPriceArgs extends GameActionArgs {
+        /** The machine's index, from VendingMachineElement.vendingMachine.index. */
+        vendingMachine: number;
+        price: number;
     }
 
     interface FootpathPlaceArgs extends GameActionArgs {
@@ -2009,6 +2018,17 @@ declare global {
         object: number;
         isBroken: boolean;
         stock: number;
+        /** The machine's price and statistics; null for ghosts. */
+        readonly vendingMachine: VendingMachineInfo | null;
+    }
+
+    interface VendingMachineInfo {
+        readonly index: number;
+        readonly price: number;
+        readonly totalProfit: number;
+        readonly totalCustomers: number;
+        readonly itemsSold: number;
+        readonly timesRestocked: number;
     }
 
     /**

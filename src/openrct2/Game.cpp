@@ -51,6 +51,7 @@
 #include "world/Banner.h"
 #include "world/Entrance.h"
 #include "world/Map.h"
+#include "world/VendingMachine.h"
 #include "world/tile_element/SurfaceElement.h"
 
 #include <memory>
@@ -318,6 +319,9 @@ void GameFixSaveVars()
 
     // Fix banners which share their index
     BannerApplyFixes();
+
+    // Give every vending machine its own price and statistics record
+    VendingMachineApplyFixes();
 
     // Fix invalid vehicle sprite sizes, thus preventing visual corruption of sprites
     FixInvalidVehicleSpriteSizes();

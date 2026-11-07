@@ -99,6 +99,7 @@ namespace OpenRCT2
         restrictedObjects       = 0x37,
         pluginStorage           = 0x38,
         preview                 = 0x39,
+        vendingMachines         = 0x3A,
         packedObjects           = 0x80
         // clang-format on
     };
@@ -168,6 +169,7 @@ namespace OpenRCT2
             auto& os = *_os;
             ReadWriteTilesChunk(gameState, os);
             ReadWriteBannersChunk(gameState, os);
+            ReadWriteVendingMachinesChunk(gameState, os);
             ReadWriteRidesChunk(gameState, os);
             ReadWriteEntitiesChunk(gameState, os);
             ReadWriteScenarioChunk(gameState, os);
@@ -210,6 +212,7 @@ namespace OpenRCT2
             ReadWriteObjectsChunk(os);
             ReadWriteTilesChunk(gameState, os);
             ReadWriteBannersChunk(gameState, os);
+            ReadWriteVendingMachinesChunk(gameState, os);
             ReadWriteRidesChunk(gameState, os);
             ReadWriteEntitiesChunk(gameState, os);
             ReadWriteScenarioChunk(gameState, os);
@@ -1484,6 +1487,52 @@ namespace OpenRCT2
                     }
                 }
             });
+        }
+
+        void ReadWriteVendingMachinesChunk(GameState_t& gameState, OrcaStream& os)
+        {
+            os.readWriteChunk(ParkFileChunkType::vendingMachines, [&gameState](OrcaStream::ChunkStream& cs) {
+                if (cs.getMode() == OrcaStream::Mode::writing)
+                {
+                    cs.write(static_cast<uint32_t>(GetNumVendingMachines()));
+                    for (auto& machine : gameState.vendingMachines)
+                    {
+                        if (!machine.isNull())
+                            ReadWriteVendingMachine(cs, machine);
+                    }
+                }
+                else if (cs.getMode() == OrcaStream::Mode::reading)
+                {
+                    auto numMachines = cs.read<uint32_t>();
+                    for (size_t i = 0; i < numMachines; i++)
+                    {
+                        VendingMachine readMachine;
+                        ReadWriteVendingMachine(cs, readMachine);
+
+                        auto* machine = GetOrCreateVendingMachine(readMachine.id);
+                        if (machine == nullptr)
+                        {
+                            throw std::runtime_error("Invalid vending machine index");
+                        }
+                        *machine = readMachine;
+                    }
+                }
+            });
+        }
+
+        static void ReadWriteVendingMachine(OrcaStream::ChunkStream& cs, VendingMachine& machine)
+        {
+            cs.readWrite(machine.id);
+            cs.readWrite(machine.type);
+            cs.readWrite(machine.position.x);
+            cs.readWrite(machine.position.y);
+            cs.readWrite(machine.position.z);
+            cs.readWrite(machine.position.direction);
+            cs.readWrite(machine.price);
+            cs.readWrite(machine.totalProfit);
+            cs.readWrite(machine.totalCustomers);
+            cs.readWrite(machine.numItemsSold);
+            cs.readWrite(machine.timesRestocked);
         }
 
         static void ReadWriteBanner(uint32_t version, OrcaStream::ChunkStream& cs, Banner& banner)

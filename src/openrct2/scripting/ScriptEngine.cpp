@@ -1683,6 +1683,7 @@ const static EnumMap<GameCommand> ActionNameToType = {
     { "footpathadditionremove", GameCommand::removeFootpathAddition },
     { "vendingmachineplace", GameCommand::placeVendingMachine },
     { "vendingmachineremove", GameCommand::removeVendingMachine },
+    { "vendingmachinesetprice", GameCommand::setVendingMachinePrice },
     { "gamesetspeed", GameCommand::setGameSpeed },
     { "guestsetflags", GameCommand::guestSetFlags },
     { "guestsetname", GameCommand::setGuestName },

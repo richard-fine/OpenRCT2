@@ -12,6 +12,7 @@
     #include "ScTile.hpp"
 
     #include "../../../world/Map.h"
+    #include "../../../world/VendingMachine.h"
     #include "../../../world/tile_element/LargeSceneryElement.h"
 
 namespace OpenRCT2::Scripting
@@ -193,6 +194,7 @@ namespace OpenRCT2::Scripting
             {
                 element->removeBannerEntry();
             }
+            VendingMachineDeleteRecordFor(*element);
             TileElementRemove(&first[index]);
             MapInvalidateTileFull(coords);
         }

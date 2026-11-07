@@ -65,6 +65,7 @@ namespace OpenRCT2
         Park::Initialise(gameState.park, gameState);
         FinanceInit();
         BannerInit(gameState);
+        VendingMachineInit(gameState);
         RideInitAll();
         gameState.entities.resetAllEntities();
         UpdateConsolidatedPatrolAreas();

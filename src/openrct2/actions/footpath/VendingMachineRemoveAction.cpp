@@ -83,6 +83,7 @@ namespace OpenRCT2::GameActions
         }
 
         MapInvalidateTileZoom1({ _loc, machine->getBaseZ(), machine->getClearanceZ() });
+        DeleteVendingMachine(machine->getMachineIndex());
         TileElementRemove(reinterpret_cast<TileElement*>(machine));
         return res;
     }

@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "../../Identifiers.h"
 #include "../../object/ObjectTypes.h"
 #include "TileElementBase.h"
 
@@ -17,6 +18,7 @@
 namespace OpenRCT2
 {
     struct PathAdditionEntry;
+    struct VendingMachine;
 
     // Height of a vending machine above the path it stands on.
     constexpr int32_t kVendingMachineClearanceZ = 32;
@@ -36,7 +38,7 @@ namespace OpenRCT2
         ObjectEntryIndex entryIndex; // 05 (path addition object)
         uint8_t machineFlags;        // 07
         uint16_t stock;              // 08
-        uint16_t machineIndex;       // 0A (reserved for per-machine price and statistics)
+        VendingMachineIndex machineIndex; // 0A (price and statistics; null for ghosts)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-private-field"
         uint8_t pad0C[4];
@@ -53,8 +55,9 @@ namespace OpenRCT2
         uint16_t getStock() const;
         void setStock(uint16_t newStock);
 
-        uint16_t getMachineIndex() const;
-        void setMachineIndex(uint16_t newIndex);
+        VendingMachineIndex getMachineIndex() const;
+        void setMachineIndex(VendingMachineIndex newIndex);
+        VendingMachine* getMachine() const;
     };
     static_assert(sizeof(VendingMachineElement) == kTileElementSize);
 
