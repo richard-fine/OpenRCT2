@@ -92,7 +92,8 @@ namespace OpenRCT2::Ui
 
         info = GetMapCoordinatesFromPos(
             screenCoords,
-            { ViewportInteractionItem::entity, ViewportInteractionItem::ride, ViewportInteractionItem::parkEntrance });
+            { ViewportInteractionItem::entity, ViewportInteractionItem::ride, ViewportInteractionItem::parkEntrance,
+              ViewportInteractionItem::vendingMachine });
         auto tileElement = info.interactionType != ViewportInteractionItem::entity ? info.Element : nullptr;
         // Only valid when info.interactionType == ViewportInteractionItem::entity, but can't assign nullptr without compiler
         // complaining
@@ -152,6 +153,25 @@ namespace OpenRCT2::Ui
                 auto ft = Formatter();
                 ft.Add<StringId>(STR_STRING);
                 ft.Add<const char*>(parkName);
+                SetMapTooltip(ft);
+                break;
+            }
+            case ViewportInteractionItem::vendingMachine:
+            {
+                Guard::ArgumentNotNull(tileElement);
+                auto* machineElement = tileElement->asVendingMachine();
+                auto* entry = machineElement->getEntry();
+                if (entry == nullptr || machineElement->getMachine() == nullptr)
+                {
+                    info.interactionType = ViewportInteractionItem::none;
+                    break;
+                }
+                auto ft = Formatter();
+                if (machineElement->isBroken())
+                {
+                    ft.Add<StringId>(STR_BROKEN);
+                }
+                ft.Add<StringId>(entry->name);
                 SetMapTooltip(ft);
                 break;
             }
@@ -254,6 +274,9 @@ namespace OpenRCT2::Ui
             }
             case ViewportInteractionItem::parkEntrance:
                 ContextOpenWindow(WindowClass::parkInformation);
+                return true;
+            case ViewportInteractionItem::vendingMachine:
+                VendingMachineOpen(info.Element->asVendingMachine()->getMachineIndex().ToUnderlying());
                 return true;
             default:
                 return false;

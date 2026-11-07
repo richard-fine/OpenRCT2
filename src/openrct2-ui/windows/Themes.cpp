@@ -165,6 +165,7 @@ namespace OpenRCT2::Ui::Windows
         WindowClass::staff,
         WindowClass::staffList,
         WindowClass::banner,
+        WindowClass::vendingMachine,
     });
 
     static constexpr std::array kThemesTabEditorsClasses = std::to_array<WindowClass>({

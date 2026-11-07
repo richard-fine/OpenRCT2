@@ -67,6 +67,7 @@ namespace OpenRCT2::Ui::Windows
 
     // Banner
     WindowBase* BannerOpen(WindowNumber number);
+    WindowBase* VendingMachineOpen(WindowNumber number);
 
     // Changelog
     WindowBase* ChangelogOpen(WindowView personality);

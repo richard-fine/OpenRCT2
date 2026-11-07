@@ -18,6 +18,7 @@
 #include "../../ride/ShopItem.h"
 #include "../../ui/WindowManager.h"
 #include "../../world/Map.h"
+#include "../../world/VendingMachine.h"
 
 namespace OpenRCT2::GameActions
 {
@@ -199,5 +200,7 @@ namespace OpenRCT2::GameActions
                 windowMgr->InvalidateByNumber(WindowClass::ride, ride.id.ToUnderlying());
             }
         }
+
+        VendingMachinesSetCommonPrice(shopItem, _price);
     }
 } // namespace OpenRCT2::GameActions

@@ -69,6 +69,11 @@ namespace OpenRCT2
     money64 VendingMachineGetDefaultPrice(ShopItem shopItem);
 
     /**
+     * Sets the price of every vending machine selling shopItem (for "same price throughout park").
+     */
+    void VendingMachinesSetCommonPrice(ShopItem shopItem, money64 price);
+
+    /**
      * Deletes the record of a vending machine element that is about to be removed (no-op for other elements).
      */
     void VendingMachineDeleteRecordFor(const TileElement& element);

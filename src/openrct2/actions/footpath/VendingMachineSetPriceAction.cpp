@@ -12,7 +12,12 @@
 #include "../../Diagnostic.h"
 #include "../../localisation/StringIds.h"
 #include "../../management/Finance.h"
+#include "../../object/ObjectEntryManager.h"
+#include "../../object/PathAdditionEntry.h"
 #include "../../ride/Ride.h"
+#include "../../ride/RideManager.hpp"
+#include "../../ride/ShopItem.h"
+#include "../../ui/WindowManager.h"
 #include "../../world/VendingMachine.h"
 
 namespace OpenRCT2::GameActions
@@ -70,9 +75,32 @@ namespace OpenRCT2::GameActions
             return Result(Status::invalidParameters, STR_ERR_INVALID_PARAMETER, kStringIdNone);
         }
 
-        // TODO: Apply to other machines (and shops) when "same price throughout park" is on for the item.
         machine->price = _price;
         res.position = machine->position.toCoordsXYZ().toTileCentre();
+
+        auto* windowMgr = Ui::GetWindowManager();
+        windowMgr->InvalidateByNumber(WindowClass::vendingMachine, _machineIndex.ToUnderlying());
+
+        // With "same price throughout park" on for the item, every machine and shop selling it follows.
+        auto* entry = ObjectEntryManager::GetObjectEntry<PathAdditionEntry>(machine->type);
+        if (entry != nullptr && ShopItemHasCommonPrice(entry->shopItem))
+        {
+            VendingMachinesSetCommonPrice(entry->shopItem, _price);
+            for (auto& ride : RideManager(gameState))
+            {
+                auto* rideEntry = ride.getRideEntry();
+                if (rideEntry == nullptr)
+                    continue;
+                for (size_t i = 0; i < std::size(rideEntry->shop_item); i++)
+                {
+                    if (rideEntry->shop_item[i] == entry->shopItem && ride.price[i] != _price)
+                    {
+                        ride.price[i] = _price;
+                        windowMgr->InvalidateByNumber(WindowClass::ride, ride.id.ToUnderlying());
+                    }
+                }
+            }
+        }
         return res;
     }
 } // namespace OpenRCT2::GameActions

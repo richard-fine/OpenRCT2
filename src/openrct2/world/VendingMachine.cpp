@@ -14,6 +14,7 @@
 #include "../object/ObjectEntryManager.h"
 #include "../object/PathAdditionEntry.h"
 #include "../ride/ShopItem.h"
+#include "../ui/WindowManager.h"
 #include "Map.h"
 #include "TileElementsView.h"
 #include "tile_element/TileElement.h"
@@ -87,7 +88,25 @@ namespace OpenRCT2
         auto* machine = GetVendingMachine(id);
         if (machine != nullptr)
         {
+            auto* windowMgr = Ui::GetWindowManager();
+            windowMgr->CloseByNumber(WindowClass::vendingMachine, id.ToUnderlying());
             *machine = {};
+        }
+    }
+
+    void VendingMachinesSetCommonPrice(ShopItem shopItem, money64 price)
+    {
+        auto* windowMgr = Ui::GetWindowManager();
+        for (auto& machine : getGameState().vendingMachines)
+        {
+            if (machine.isNull() || machine.price == price)
+                continue;
+            auto* entry = ObjectEntryManager::GetObjectEntry<PathAdditionEntry>(machine.type);
+            if (entry != nullptr && entry->shopItem == shopItem)
+            {
+                machine.price = price;
+                windowMgr->InvalidateByNumber(WindowClass::vendingMachine, machine.id.ToUnderlying());
+            }
         }
     }
 
