@@ -30,13 +30,14 @@ namespace
         CoordsXYZ boundBoxLength;
     };
 
-    // Indexed by screen edge (NE, SE, SW, NW). Machines stand against the edge, 6 units deep and 16 wide,
-    // facing the centre of the path.
+    // Indexed by screen edge (NE, SE, SW, NW). Machines are 6 units deep and 16 wide, facing the centre of the path.
+    // They stand just inside the railings of raised paths (which are 4 units in from the tile edge), so their bounding
+    // boxes don't overlap and the two sort correctly.
     constexpr MachineGeometry kMachineGeometry[] = {
-        { { 4, 16, 0 }, { 1, 8, 2 }, { 6, 16, 24 } },
-        { { 16, 28, 0 }, { 8, 25, 2 }, { 16, 6, 24 } },
-        { { 28, 16, 0 }, { 25, 8, 2 }, { 6, 16, 24 } },
-        { { 16, 4, 0 }, { 8, 1, 2 }, { 16, 6, 24 } },
+        { { 8, 16, 0 }, { 5, 8, 2 }, { 6, 16, 24 } },
+        { { 16, 24, 0 }, { 8, 21, 2 }, { 16, 6, 24 } },
+        { { 24, 16, 0 }, { 21, 8, 2 }, { 6, 16, 24 } },
+        { { 16, 8, 0 }, { 8, 5, 2 }, { 16, 6, 24 } },
     };
 } // namespace
 
@@ -86,7 +87,7 @@ void PaintVendingMachine(
     if (LightFx::IsAvailable() && !isBroken && !machineElement.isGhost())
     {
         // Offsets from the tile centre towards the machine's edge, by (unrotated) direction.
-        static constexpr CoordsXY kLightOffsets[] = { { -10, 0 }, { 0, 10 }, { 10, 0 }, { 0, -10 } };
+        static constexpr CoordsXY kLightOffsets[] = { { -5, 0 }, { 0, 5 }, { 5, 0 }, { 0, -5 } };
         const auto& offset = kLightOffsets[machineElement.getDirection() & 3];
         LightFx::Add3DLightMagicFromDrawingTile(
             session.MapPosition, offset.x, offset.y, height + 18, LightFx::LightType::lantern1);
