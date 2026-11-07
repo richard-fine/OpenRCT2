@@ -404,6 +404,7 @@ namespace OpenRCT2
         bool shouldFindBench();
         bool updateWalkingFindBin();
         bool updateWalkingUseVendingMachine();
+        void updateUsingVendingMachine();
         bool updateWalkingFindBench();
         void updateRide();
         void updateOnRide() {}; // TODO

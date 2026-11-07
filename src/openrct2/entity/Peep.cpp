@@ -175,6 +175,7 @@ namespace OpenRCT2
             case PeepState::emptyingBin:
             case PeepState::restockingVendingMachine:
             case PeepState::usingBin:
+            case PeepState::usingVendingMachine:
             case PeepState::watering:
             case PeepState::headingToInspection:
                 return true;
@@ -1313,6 +1314,7 @@ namespace OpenRCT2
                 return { PeepActionDescriptionType::atShop, currentRide };
             case PeepState::walking:
             case PeepState::usingBin:
+            case PeepState::usingVendingMachine:
             {
                 if (auto* guest = as<Guest>(); guest != nullptr)
                 {

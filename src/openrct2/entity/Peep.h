@@ -70,6 +70,7 @@ namespace OpenRCT2
         headingToInspection = 22,
         inspecting = 23,
         restockingVendingMachine = 24,
+        usingVendingMachine = 25,
     };
 
     enum class PeepSittingSubState : uint8_t

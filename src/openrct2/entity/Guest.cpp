@@ -1437,19 +1437,22 @@ namespace OpenRCT2
      *
      *  rct2: 0x0069AF1E
      */
-    // Exactly one of ride and machine is set: the shop or vending machine selling the item.
-    static bool GuestDecideAndBuyItem(
-        Guest& guest, Ride* ride, VendingMachine* machine, const ShopItem shopItem, money64 price)
+    static bool GuestHasVoucherFor(Guest& guest, const ShopItem shopItem)
+    {
+        return guest.hasItem(ShopItem::voucher) && guest.voucherType == VOUCHER_TYPE_FOOD_OR_DRINK_FREE
+            && guest.voucherShopItem == shopItem;
+    }
+
+    /**
+     * Decides whether the guest buys the item, with the thoughts and happiness that go with that decision.
+     * ride is the shop selling it, or null for a vending machine.
+     */
+    static bool GuestDecideToBuyItem(Guest& guest, Ride* ride, const ShopItem shopItem, money64 price)
     {
         const bool isPrecipitating = Weather::isPrecipitating();
         const bool isPrecipitatingAndUmbrella = isPrecipitating && (shopItem == ShopItem::umbrella);
 
-        bool hasVoucher = false;
-        if ((guest.hasItem(ShopItem::voucher)) && (guest.voucherType == VOUCHER_TYPE_FOOD_OR_DRINK_FREE)
-            && (guest.voucherShopItem == shopItem))
-        {
-            hasVoucher = true;
-        }
+        const bool hasVoucher = GuestHasVoucherFor(guest, shopItem);
 
         if (guest.hasItem(shopItem))
         {
@@ -1581,8 +1584,19 @@ namespace OpenRCT2
                 ride->updateSatisfaction(satisfaction);
         }
 
-        // The peep has now decided to buy the item (or, specifically, has not been
-        // dissuaded so far).
+        return true;
+    }
+
+    /**
+     * Completes a purchase the guest decided to make: hands over the item, takes the money and records the sale.
+     * Exactly one of ride and machine is set: the shop or vending machine selling the item.
+     */
+    static void GuestBuyItem(Guest& guest, Ride* ride, VendingMachine* machine, const ShopItem shopItem, money64 price)
+    {
+        auto& gameState = getGameState();
+        const auto& shopItemDescriptor = GetShopItemDescriptor(shopItem);
+        const bool hasVoucher = GuestHasVoucherFor(guest, shopItem);
+
         guest.giveItem(shopItem);
         // Vending machines have no colour scheme, so their items come in random colours.
         const auto hasRandomShopColour = ride == nullptr || ride->flags.has(RideFlag::randomShopColours);
@@ -1684,6 +1698,14 @@ namespace OpenRCT2
             machine->numItemsSold = AddClamp(machine->numItemsSold, 1u);
         }
 
+    }
+
+    static bool GuestDecideAndBuyItem(Guest& guest, Ride* ride, VendingMachine* machine, const ShopItem shopItem, money64 price)
+    {
+        if (!GuestDecideToBuyItem(guest, ride, shopItem, price))
+            return false;
+
+        GuestBuyItem(guest, ride, machine, shopItem, price);
         return true;
     }
 
@@ -5327,6 +5349,9 @@ namespace OpenRCT2
                 case PeepState::usingBin:
                     updateUsingBin();
                     break;
+                case PeepState::usingVendingMachine:
+                    updateUsingVendingMachine();
+                    break;
                 default:
                     // TODO reset to default state
                     assert(false);
@@ -6310,8 +6335,9 @@ namespace OpenRCT2
     }
 
     /**
-     * Buys from a working vending machine on the path the guest is walking along, if it sells something they want.
-     * Returns true if they bought something (and stopped to use the machine).
+     * Starts using a working vending machine on the path the guest is walking along, if it sells something they want
+     * and they decide to buy it. The sale itself happens once they have finished using the machine.
+     * Returns true if the guest stopped to use a machine.
      */
     bool Guest::updateWalkingUseVendingMachine()
     {
@@ -6323,10 +6349,57 @@ namespace OpenRCT2
         if (machineElement == nullptr)
             return false;
 
-        auto* machine = machineElement->getMachine();
-        const auto shopItem = machineElement->getEntry()->shopItem;
-        if (!GuestDecideAndBuyItem(*this, nullptr, machine, shopItem, machine->price))
+        const auto* machine = machineElement->getMachine();
+        if (!GuestDecideToBuyItem(*this, nullptr, machineElement->getEntry()->shopItem, machine->price))
             return false;
+
+        // Stop to use the machine, facing it. The edge it stands on is kept in var37 until the sale.
+        setState(PeepState::usingVendingMachine);
+        var37 = machineElement->getDirection();
+        orientation = machineElement->getDirection() << 3;
+        action = PeepActionType::withdrawMoney;
+        animationFrameNum = 0;
+        animationImageIdOffset = 0;
+        updateCurrentAnimationType();
+        invalidate();
+        return true;
+    }
+
+    /**
+     * Plays the guest's vending machine animation, then completes the sale. If the machine broke, sold out or
+     * disappeared in the meantime, or the guest can no longer pay, they walk on without buying anything.
+     */
+    void Guest::updateUsingVendingMachine()
+    {
+        if (!isActionWalking())
+        {
+            updateAction();
+            invalidate();
+            // Complete the sale as soon as the animation finishes.
+            if (!isActionWalking())
+                return;
+        }
+
+        auto* machineElement = VendingMachineGetElementAt({ nextLoc, static_cast<Direction>(var37 & 3) }, false);
+        auto* machine = machineElement != nullptr ? machineElement->getMachine() : nullptr;
+        auto* entry = machineElement != nullptr ? machineElement->getEntry() : nullptr;
+        if (machine == nullptr || entry == nullptr || machineElement->isBroken() || machineElement->getStock() == 0)
+        {
+            stateReset();
+            return;
+        }
+
+        const auto shopItem = entry->shopItem;
+        const auto price = machine->price;
+        const bool paysWithMoney = price != 0 && !GuestHasVoucherFor(*this, shopItem)
+            && !getGameState().park.flags.has(ParkFlag::noMoney);
+        if (hasItem(shopItem) || (paysWithMoney && price > cashInPocket))
+        {
+            stateReset();
+            return;
+        }
+
+        GuestBuyItem(*this, nullptr, machine, shopItem, price);
 
         machineElement->setStock(machineElement->getStock() - 1);
         if (machineElement->getStock() == 0)
@@ -6351,14 +6424,7 @@ namespace OpenRCT2
             }
         }
 
-        // Stop to use the machine, facing it.
-        orientation = machineElement->getDirection() << 3;
-        action = PeepActionType::withdrawMoney;
-        animationFrameNum = 0;
-        animationImageIdOffset = 0;
-        updateCurrentAnimationType();
-        invalidate();
-        return true;
+        stateReset();
     }
 
     static VendingMachineElement* FindBreakableVendingMachine(const CoordsXYZ& loc)
