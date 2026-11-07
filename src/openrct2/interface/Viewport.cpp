@@ -1427,6 +1427,7 @@ namespace OpenRCT2
             case ViewportInteractionItem::footpath:
             case ViewportInteractionItem::pathAddition:
             case ViewportInteractionItem::banner:
+            case ViewportInteractionItem::vendingMachine:
                 if (viewFlags.has(ViewportFlag::hidePaths) || clipped)
                 {
                     return viewFlags.has(ViewportFlag::invisiblePaths) ? VisibilityKind::hidden : VisibilityKind::partial;
